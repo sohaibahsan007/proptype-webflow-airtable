@@ -44,6 +44,9 @@ function OnSubmit(event){
   if(currentValue == ""){
     error += "Please enter your current value.\n";
   }
+  if(startValue == currentValue){
+    error += "Start value and current value cannot be same.\n";
+  }
   if(error == ""){
     const projectedData = prepareDateForProjection(formData);
     drawChart(projectedData,formData);
@@ -131,17 +134,19 @@ function drawChart(projectedData,formData){
         focus: "series",
       },
     };
-    const color = ['#5470c6', '#ee6666',  '#3ba272','#3ba272','#3ba272','#3ba272','#3ba272','#3ba272'];
+    const color = ['#4285f4', '#ee6666',  '#3ba272','#3ba272','#3ba272','#3ba272','#3ba272','#3ba272'];
     const findCurrentProgress = projectedData?.find(item => item.goalAchievedOnIndex != null);
     const currentProgressIndex = projectedData?.findIndex(item => item.goalAchievedOnIndex != null);
     const findCurrentProgressNegative = projectedData?.find(item => item.goalAchievedOnIndexNegative != null);
     const currentProgress = findCurrentProgress ?? findCurrentProgressNegative;
     const achievementPoint = projectedData?.find(item => new Date(item?.date)?.toLocaleDateString("en-US") == new Date(formData.currentDate)?.toLocaleDateString("en-US"));
     const symbolRotateBasedOnProgress = 1 - currentProgressIndex/projectedData?.length;
+    const achievementPercentage = (findCurrentProgress?.startValue/ achievementPoint?.startValue)*100;
+    const achievementPercentageNegative = (achievementPoint?.startValueNegative/findCurrentProgressNegative?.startValueNegative)*100;
+    const progressPercentage = parseFloat(achievementPercentage > -1 ? achievementPercentage : achievementPercentageNegative)?.toFixed(2);
     const markPoint ={
       data: [
         {
-          name: 'insideStartTop',
           xAxis: currentProgress?.date,
           yAxis: currentProgress?.goalAchievedOnIndex ?? currentProgress?.goalAchievedOnIndexNegative,
           symbol: 'arrow',
@@ -149,16 +154,17 @@ function drawChart(projectedData,formData){
           symbolOffset: [0, 0] ,
           symbolRotate: -100*symbolRotateBasedOnProgress,
           itemStyle: {
-            color: '#3ba272',
+            color: `#fbbc04`
           },
           label: {
-            formatter: 'Current Progress: ' +  formData?.currentValue,
+            formatter: `Current Progress: ${formData?.currentValue} \n Current Progress: ${progressPercentage}%`,
             position: 'left',
-            align: 'center',
-            offset: [-70, 0],
+            align: 'right',
+            lineHeight: 20,
+            offset: [0, 0],
             rotate: 0,
-            color: '#fff',
-            backgroundColor: '#3ba272',
+            color:  `#fff`,
+            backgroundColor: `#fbbc04`,
             padding: 6,
             borderRadius: 6,
             shadowColor: 'rgba(0, 0, 0, 0.5)',
@@ -166,18 +172,30 @@ function drawChart(projectedData,formData){
           },
         },
         {
-          name: 'insideStartTop',
           xAxis: achievementPoint?.date,
           yAxis: achievementPoint?.startValue,
           symbol: 'circle',
           symbolSize: 14,
           itemStyle: {
-            color: '#fbbc04',
+            color: 'green',
           },
-          // label: {
-          //   formatter: parseFloat(achievementPoint?.startValue)?.toFixed(2),
-          //   position: 'end'
-          // }
+        },
+        {
+          xAxis: achievementPoint?.date,
+          yAxis: achievementPoint?.startValueNegative,
+          symbol: 'circle',
+          symbolSize: 14,
+          itemStyle: {
+            color: 'red',
+          },
+          label: {
+            formatter: '1% \n Decline Goal Score: ' + parseFloat(achievementPoint?.startValueNegative).toFixed(2),
+            position: 'top',
+            align: 'center',
+            lineHeight: 14,
+            rotate: 0,
+            color: 'red'
+          },
         }
       ]
     };
@@ -190,14 +208,16 @@ function drawChart(projectedData,formData){
                 label: {
                   formatter: '1% \n Improvement Goal Score: ' + parseFloat(achievementPoint?.startValue)?.toFixed(2),
                   position: 'insideMiddleTop',
+                  padding: [3, 400, 5, 6],
                   fontSize: 15,
+                  lineHeight: 20,
                   align: 'center',
-                  color: '#fbbc04',
+                  color: 'green',
                 },
                 itemStyle: {
-                  color: '#fbbc04',
+                  color: 'green',
                 }
-              }
+              },
             ]
       };
     const option = {
@@ -230,9 +250,75 @@ function drawChart(projectedData,formData){
         },
       ],
       color,
+      graphic: [
+        {
+          type: 'group',
+          left: '30%',
+          top: '5%',
+          children: [
+            {
+              type: 'rect',
+              z: 100,
+              left: 'center',
+              top: 'middle',
+              shape: {
+                width: 240,
+                height: 90
+              },
+              style: {
+                fill: '#fff',
+                stroke: '#555',
+                lineWidth: 1,
+                shadowBlur: 8,
+                shadowOffsetX: 3,
+                shadowOffsetY: 3,
+                shadowColor: 'rgba(0,0,0,0.2)'
+              }
+            },
+            {
+              type: 'text',
+              z: 100,
+              left: 'center',
+              top: 'middle',
+              style: {
+                fill: '#333',
+                width: 220,
+                overflow: 'break',
+                text: 'xAxis represents temperature in °C, yAxis represents altitude in km, An image watermark in the upper right, This text block can be placed in any place',
+              }
+            }
+          ]
+        },
+        {
+          type: 'line',
+          left: '1%',
+          bottom: '5%',
+          children: [
+            {
+              type: 'rect',
+              z: 100,
+              left: 'center',
+              top: 'middle',
+              shape: {
+                width: 240,
+                height: 90
+              },
+              style: {
+                fill: '#fff',
+                stroke: '#555',
+                lineWidth: 1,
+                shadowBlur: 8,
+                shadowOffsetX: 3,
+                shadowOffsetY: 3,
+                shadowColor: 'rgba(0,0,0,0.2)'
+              }
+            },
+          ]
+        },
+      ],
       series: [
         {
-          data: projectedData?.map(d => d.startValue),
+          data: projectedData?.map(d => parseFloat(d.startValue)?.toFixed(2) ),
           name: 'Projected 1% BETTER EVERY DAY',
           smooth: true,
           ...seriesSharedOption,
@@ -240,7 +326,7 @@ function drawChart(projectedData,formData){
           markPoint
         },
         {
-          data: projectedData?.map(d => d.startValueNegative),
+          data: projectedData?.map(d => parseFloat(d.startValueNegative)?.toFixed(2) ),
           name: 'Projected 1% DECLINE EVERY DAY',
           ...seriesSharedOption,
           markPoint
