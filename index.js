@@ -5,11 +5,13 @@ var Airtable = require('airtable');
 const airtableBase = new Airtable({apiKey: 'keyVpI72WUwwks62v'}).base('appsE68H46tsOnWMG');
 // init echart instance
 const chart = echarts.init(chartDom);
+let progressPercentage = null;
 
 window.onload = function() {
   const form = document.querySelector("form");
   form.onsubmit = OnSubmit.bind(form);
- // getAirTableRecords();
+  form.onchange = OnSubmit.bind(form);
+  // loadTestValue();
   OnSubmit();
 };
 function getDates(startDate, endDate, interval) {
@@ -20,13 +22,13 @@ function getDates(startDate, endDate, interval) {
 function OnSubmit(event){
 
   if(event) event.preventDefault();
-
   const fullName = document.getElementById('fullName').value;
   const email = document.getElementById('email').value;
   const startDate = document.getElementById('startDate').value;
   const currentDate = document.getElementById('currentDate').value;
   const startValue = document.getElementById('startValue').value;
   const currentValue = document.getElementById('currentValue').value;
+  // const currentValueRange = document.getElementById('currentValueRange').value;
   const formData = {fullName, email, startDate, currentDate, startValue, currentValue};
   let error = "";
   if(fullName == ""){
@@ -51,10 +53,18 @@ function OnSubmit(event){
     error += "Start value and current value cannot be same.\n";
   }
   if(error == ""){
+    document.getElementById('submitBtn').disabled = false;
     const projectedData = prepareDateForProjection(formData);
     drawChart(projectedData,formData);
-  }else{
+
+    if(event?.type == "submit"){
+      document.getElementById('submitBtn').disabled = true;
+       submitRecordToAirTable(formData);
+    }
+  }else if(error != "" && event?.type == "submit"){
     alert(error);
+  }else if(error != "" && event?.type == "change"){
+    document.getElementById('submitBtn').disabled = true;
   }
 }
 function prepareDateForProjection(formData){
@@ -146,7 +156,7 @@ function drawChart(projectedData,formData){
     const symbolRotateBasedOnProgress = 1 - currentProgressIndex/projectedData?.length;
     const achievementPercentage = (findCurrentProgress?.startValue/ achievementPoint?.startValue)*100;
     const achievementPercentageNegative = (achievementPoint?.startValueNegative/findCurrentProgressNegative?.startValueNegative)*100;
-    const progressPercentage = parseFloat(achievementPercentage > -1 ? achievementPercentage : achievementPercentageNegative)?.toFixed(2);
+    progressPercentage = parseFloat(achievementPercentage > -1 ? achievementPercentage : -1*achievementPercentageNegative)?.toFixed(2);
     const markPoint ={
       data: [
         {
@@ -345,4 +355,40 @@ function getAirTableRecords(){
 }, function done(err) {
     if (err) { console.error(err); return; }
 });
+}
+function submitRecordToAirTable(formData){
+  airtableBase('User_Data').create([
+    {
+      "fields": {
+        "full_name": formData?.fullName,
+        "email": formData?.email,
+        "score_percentage": progressPercentage/100,
+        "type": progressPercentage > -1 ? "Improvement" : "Decline",
+      }
+    },
+  ], function(err) {
+    document.getElementById('submitBtn').disabled = false;
+    if (err) {
+      alert(err);
+      return;
+    }
+    clearForm();
+    alert('Succefully Submitted');
+  });
+}
+function loadTestValue(){
+  document.getElementById('fullName').value = 'Sohaib Ahsan';
+  document.getElementById('email').value = 's@s.com';
+  document.getElementById('startDate').value = '2022-01-01';
+  document.getElementById('currentDate').value = '2022-12-31';
+  document.getElementById('startValue').value = 1;
+ document.getElementById('currentValue').value = 37;
+}
+function clearForm(){
+  document.getElementById('fullName').value = '';
+  document.getElementById('email').value = '';
+  document.getElementById('startDate').value = '';
+  document.getElementById('currentDate').value = '';
+  document.getElementById('startValue').value = '';
+  document.getElementById('currentValue').value = '';
 }

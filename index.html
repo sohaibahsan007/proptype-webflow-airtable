@@ -17,18 +17,18 @@
   <h2 class="display-6 text-center mb-4">Prototype of Webflow with AirTable</h2>
   <main class="row" style="height: 80vh;">
     <div class="col-md-3 col-lg-3">
-      <form id="formValue" class="needs-validation" novalidate="">
+      <form id="formValue" class="needs-validation" >
         <div class="row g-3">
           <div class="col-sm-12">
             <label for="fullName" class="form-label">Name</label>
-            <input type="text" class="form-control" id="fullName" placeholder="Sohaib Ahsan" value="Test Name" required="">
+            <input type="text" class="form-control" id="fullName" placeholder="your full name" value="" required>
             <div class="invalid-feedback">
               Valid Full Name is required.
             </div>
           </div>
           <div class="col-12">
             <label for="email" class="form-label">Email</label>
-            <input type="email" class="form-control" id="email" placeholder="you@example.com" value="you@test.com">
+            <input type="email" class="form-control" id="email"  placeholder="you@example.com" value="" required>
             <div class="invalid-feedback">
               Please enter a valid email address.
             </div>
@@ -38,23 +38,28 @@
         <div class="row gy-3">
           <div class="col-md-6">
             <label for="startDate" class="form-label">Start Date</label>
-            <input type="date" class="form-control" id="startDate" placeholder="" value="2022-01-01" required="">
+            <input type="date" class="form-control" id="startDate" placeholder=""  required>
           </div>
           <div class="col-md-6">
             <label for="startDate" class="form-label">Start Value</label>
-            <input type="number" class="form-control" id="startValue" placeholder=""  value="20" required="">
+            <input type="number" class="form-control" id="startValue" placeholder="e.g # of pages"  required>
           </div>
           <div class="col-md-6">
             <label for="currentDate" class="form-label">Current Date</label>
-            <input type="date" class="form-control" id="currentDate" placeholder="" value="2022-12-31" required="">
+            <input type="date" class="form-control" id="currentDate" placeholder=""  required>
           </div>
           <div class="col-md-6">
             <label for="currentDate" class="form-label">Current Value</label>
-            <input type="number" class="form-control" id="currentValue" placeholder="" value="5" required="">
+            <input type="number" class="form-control" id="currentValue" placeholder="e.g # of pages" required>
           </div>
+          <!-- <div class="col-md-12">
+            <label for="currentDate" class="form-label">Current Value</label>
+            <input type="range" class="form-range" id="currentValueRange">
+          </div> -->
         </div>
+
         <hr class="my-4">
-        <button class="w-100 btn btn-primary btn-lg" type="submit">Calculate</button>
+        <button class="w-100 btn btn-primary btn-lg" id="submitBtn" type="submit">Submit</button>
       </form>
     </div>
     <div class="col-md-9 col-lg-9">
