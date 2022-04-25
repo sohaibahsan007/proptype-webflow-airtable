@@ -1,19 +1,22 @@
 // get chart dom
 const chartDom = document.getElementById('chart');
-
+var Airtable = require('airtable');
+  // setup airtable
+const airtableBase = new Airtable({apiKey: 'keyVpI72WUwwks62v'}).base('appsE68H46tsOnWMG');
 // init echart instance
 const chart = echarts.init(chartDom);
 
 window.onload = function() {
   const form = document.querySelector("form");
   form.onsubmit = OnSubmit.bind(form);
+ // getAirTableRecords();
   OnSubmit();
 };
 function getDates(startDate, endDate, interval) {
   const duration = endDate - startDate;
   const steps = duration / interval;
   return Array.from({length: steps+1}, (v,i) => new Date(startDate.valueOf() + (interval * i)));
-  }
+}
 function OnSubmit(event){
 
   if(event) event.preventDefault();
@@ -134,7 +137,7 @@ function drawChart(projectedData,formData){
         focus: "series",
       },
     };
-    const color = ['#4285f4', '#ee6666',  '#3ba272','#3ba272','#3ba272','#3ba272','#3ba272','#3ba272'];
+    const color = ['#fbbc04', '#ee6666',  '#3ba272','#3ba272','#3ba272','#3ba272','#3ba272','#3ba272'];
     const findCurrentProgress = projectedData?.find(item => item.goalAchievedOnIndex != null);
     const currentProgressIndex = projectedData?.findIndex(item => item.goalAchievedOnIndex != null);
     const findCurrentProgressNegative = projectedData?.find(item => item.goalAchievedOnIndexNegative != null);
@@ -150,24 +153,26 @@ function drawChart(projectedData,formData){
           xAxis: currentProgress?.date,
           yAxis: currentProgress?.goalAchievedOnIndex ?? currentProgress?.goalAchievedOnIndexNegative,
           symbol: 'arrow',
-          symbolSize: 16,
+          symbolSize: 20,
           symbolOffset: [0, 0] ,
           symbolRotate: -100*symbolRotateBasedOnProgress,
           itemStyle: {
-            color: `#fbbc04`
+            color: '#4285f4',
+            shadowColor: 'rgb(13 110 253 / 50%)',
+            shadowBlur: 5
           },
           label: {
-            formatter: `Current Progress: ${formData?.currentValue} \n Current Progress: ${progressPercentage}%`,
+            formatter: `Current Progress Score: ${formData?.currentValue} \n Current Progress (%): ${progressPercentage}%`,
             position: 'left',
             align: 'right',
             lineHeight: 20,
             offset: [0, 0],
             rotate: 0,
             color:  `#fff`,
-            backgroundColor: `#fbbc04`,
+            backgroundColor: '#4285f4',
             padding: 6,
             borderRadius: 6,
-            shadowColor: 'rgba(0, 0, 0, 0.5)',
+            shadowColor: 'rgb(13 110 253 / 50%)',
             shadowBlur: 5
           },
         },
@@ -175,7 +180,7 @@ function drawChart(projectedData,formData){
           xAxis: achievementPoint?.date,
           yAxis: achievementPoint?.startValue,
           symbol: 'circle',
-          symbolSize: 14,
+          symbolSize: 12,
           itemStyle: {
             color: 'green',
           },
@@ -184,15 +189,16 @@ function drawChart(projectedData,formData){
           xAxis: achievementPoint?.date,
           yAxis: achievementPoint?.startValueNegative,
           symbol: 'circle',
-          symbolSize: 14,
+          symbolSize: 12,
           itemStyle: {
             color: 'red',
           },
           label: {
             formatter: '1% \n Decline Goal Score: ' + parseFloat(achievementPoint?.startValueNegative).toFixed(2),
-            position: 'top',
+            position: 'bottom',
             align: 'center',
             lineHeight: 14,
+            distance: 20,
             rotate: 0,
             color: 'red'
           },
@@ -224,15 +230,24 @@ function drawChart(projectedData,formData){
       xAxis: {
         type: 'category',
         data: projectedData?.map(d => d.date),
+        axisLine:{
+          show: false,
+        },
+        axisTick:{
+          show: false,
+        },
+        axisLabel:{
+           margin: 80
+        }
       },
       legend: {
         show: true,
       },
       grid: {
         top: 30,
-        left: 200,
+        left: 100,
         right: 60,
-        bottom: 40
+        bottom: 100
       },
       textStyle: {
         fontFamily: 'system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans","Liberation Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji"' ,
@@ -253,8 +268,9 @@ function drawChart(projectedData,formData){
       graphic: [
         {
           type: 'group',
-          left: '30%',
+          left: '3%',
           top: '5%',
+          draggable: true,
           children: [
             {
               type: 'rect',
@@ -262,12 +278,12 @@ function drawChart(projectedData,formData){
               left: 'center',
               top: 'middle',
               shape: {
-                width: 240,
-                height: 90
+                width: 440,
+                height: 40,
+                r: 6,
               },
               style: {
-                fill: '#fff',
-                stroke: '#555',
+                fill: achievementPercentage > -1 ? '#3ba272' : '#ee6666',
                 lineWidth: 1,
                 shadowBlur: 8,
                 shadowOffsetX: 3,
@@ -281,38 +297,14 @@ function drawChart(projectedData,formData){
               left: 'center',
               top: 'middle',
               style: {
-                fill: '#333',
-                width: 220,
-                overflow: 'break',
-                text: 'xAxis represents temperature in °C, yAxis represents altitude in km, An image watermark in the upper right, This text block can be placed in any place',
-              }
-            }
-          ]
-        },
-        {
-          type: 'line',
-          left: '1%',
-          bottom: '5%',
-          children: [
-            {
-              type: 'rect',
-              z: 100,
-              left: 'center',
-              top: 'middle',
-              shape: {
-                width: 240,
-                height: 90
-              },
-              style: {
                 fill: '#fff',
-                stroke: '#555',
-                lineWidth: 1,
-                shadowBlur: 8,
-                shadowOffsetX: 3,
-                shadowOffsetY: 3,
-                shadowColor: 'rgba(0,0,0,0.2)'
-              }
-            },
+                width: 220,
+                //overflow: 'break',
+                lineHeight: 25,
+                fontSize: 16,
+                text: `You have achieved ${progressPercentage}% of 1% Daily ${achievementPercentage > -1 ? 'Improvement': 'Decline'} Goal`,
+              },
+            }
           ]
         },
       ],
@@ -334,4 +326,23 @@ function drawChart(projectedData,formData){
       ]
     };
     option && chart.setOption(option);
+}
+function getAirTableRecords(){
+  airtableBase('User_Data').select({
+    maxRecords: 3,
+    view: 'Grid view'
+  }).eachPage(function page(records, fetchNextPage) {
+    // This function (`page`) will get called for each page of records.
+
+    records.forEach(function(record) {
+        console.log('Retrieved', record.get('full_name'));
+    });
+
+    // To fetch the next page of records, call `fetchNextPage`.
+    // If there are more records, `page` will get called again.
+    // If there are no more records, `done` will get called.
+    fetchNextPage();
+}, function done(err) {
+    if (err) { console.error(err); return; }
+});
 }
