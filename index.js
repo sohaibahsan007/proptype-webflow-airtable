@@ -1,71 +1,7 @@
-// get chart dom
-const chartDom = document.getElementById('chart');
-var Airtable = require('airtable');
-  // setup airtable
-const airtableBase = new Airtable({apiKey: 'keyVpI72WUwwks62v'}).base('appsE68H46tsOnWMG');
-// init echart instance
-const chart = echarts.init(chartDom);
-let progressPercentage = null;
-
-window.onload = function() {
-  const form = document.querySelector("form");
-  form.onsubmit = OnSubmit.bind(form);
-  form.onchange = OnSubmit.bind(form);
-  // loadTestValue();
-  OnSubmit();
-};
 function getDates(startDate, endDate, interval) {
   const duration = endDate - startDate;
   const steps = duration / interval;
   return Array.from({length: steps+1}, (v,i) => new Date(startDate.valueOf() + (interval * i)));
-}
-function OnSubmit(event){
-
-  if(event) event.preventDefault();
-  const fullName = document.getElementById('fullName').value;
-  const email = document.getElementById('email').value;
-  const startDate = document.getElementById('startDate').value;
-  const currentDate = document.getElementById('currentDate').value;
-  const startValue = document.getElementById('startValue').value;
-  const currentValue = document.getElementById('currentValue').value;
-  // const currentValueRange = document.getElementById('currentValueRange').value;
-  const formData = {fullName, email, startDate, currentDate, startValue, currentValue};
-  let error = "";
-  if(fullName == ""){
-    error += "Please enter your full name.\n";
-  }
-  if(email == ""){
-    error += "Please enter your email.\n";
-  }
-  if(startDate == ""){
-    error += "Please enter your start date.\n";
-  }
-  if(currentDate == ""){
-    error += "Please enter your current date.\n";
-  }
-  if(startValue == ""){
-    error += "Please enter your start value.\n";
-  }
-  if(currentValue == ""){
-    error += "Please enter your current value.\n";
-  }
-  if(startValue == currentValue){
-    error += "Start value and current value cannot be same.\n";
-  }
-  if(error == ""){
-    document.getElementById('submitBtn').disabled = false;
-    const projectedData = prepareDateForProjection(formData);
-    drawChart(projectedData,formData);
-
-    if(event?.type == "submit"){
-      document.getElementById('submitBtn').disabled = true;
-       submitRecordToAirTable(formData);
-    }
-  }else if(error != "" && event?.type == "submit"){
-    alert(error);
-  }else if(error != "" && event?.type == "change"){
-    document.getElementById('submitBtn').disabled = true;
-  }
 }
 function prepareDateForProjection(formData){
   const startDate = new Date(formData.startDate);
@@ -132,6 +68,106 @@ function prepareListForProjection(datesList, startValue, currentValue){
   }
   return projectList;
 }
+function loadTestValue(){
+  document.getElementById('fullName').value = 'Sohaib Ahsan';
+  document.getElementById('email').value = 's@s.com';
+  document.getElementById('startDate').value = '2022-01-01';
+  document.getElementById('currentDate').value = '2022-12-31';
+  document.getElementById('startValue').value = 1;
+ document.getElementById('currentValue').value = 37;
+}
+function clearForm(){
+  document.getElementById('fullName').value = '';
+  document.getElementById('email').value = '';
+  document.getElementById('startDate').value = '';
+  document.getElementById('currentDate').value = '';
+  document.getElementById('startValue').value = '';
+  document.getElementById('currentValue').value = '';
+}
+function OnSubmit(event){
+
+  if(event) event.preventDefault();
+  const fullName = document.getElementById('fullName').value;
+  const email = document.getElementById('email').value;
+  const startDate = document.getElementById('startDate').value;
+  const currentDate = document.getElementById('currentDate').value;
+  const startValue = document.getElementById('startValue').value;
+  const currentValue = document.getElementById('currentValue').value;
+  // const currentValueRange = document.getElementById('currentValueRange').value;
+  const formData = {fullName, email, startDate, currentDate, startValue, currentValue};
+  let error = "";
+  if(fullName == ""){
+    error += "Please enter your full name.\n";
+  }
+  if(email == ""){
+    error += "Please enter your email.\n";
+  }
+  if(startDate == ""){
+    error += "Please enter your start date.\n";
+  }else if(currentDate == ""){
+    const date = new Date(startDate);
+    const date_NextYear = new Date(date.setDate(date.getDate() + 365));
+    document.getElementById('currentDate').value = date_NextYear?.toJSON()?.slice(0,10);
+  }
+  if(currentDate == ""){
+    error += "Please enter your current date.\n";
+  }
+  if(startValue == ""){
+    error += "Please enter your start value.\n";
+  }
+  if(currentValue == ""){
+    error += "Please enter your current value.\n";
+  }
+  if(startValue != "" && currentValue != "" && startValue == currentValue){
+    error += "Start value and current value cannot be same.\n";
+    alert("Start value and current value cannot be same.\n");
+  }
+
+  if(startDate != "" && currentDate != ""){
+    let validate7DaysDifference = new Date(startDate);
+    validate7DaysDifference = validate7DaysDifference.setDate(validate7DaysDifference.getDate() + 7);
+
+    if(new Date(validate7DaysDifference) >= new Date(currentDate)){
+      error += "Start date cannot be less than current date.\n";
+       alert("Current date must have atleast 7 days of difference from Start date.\n");
+    }
+  }
+  if(error == ""){
+    document.getElementById('submitBtn').disabled = false;
+    const projectedData = prepareDateForProjection(formData);
+    drawChart(projectedData,formData);
+
+    if(event?.type == "submit"){
+      document.getElementById('submitBtn').disabled = true;
+       submitRecordToAirTable(formData);
+    }
+  }else if(error != "" && event?.type == "submit"){
+    alert(error);
+  }else if(error != "" && event?.type == "change"){
+    document.getElementById('submitBtn').disabled = true;
+  }
+}
+
+
+/// this will go into body section
+
+// get chart dom
+const chartDom = document.getElementById('chart');
+var Airtable = require('airtable');
+  // setup airtable
+const airtableBase = new Airtable({apiKey: 'keyVpI72WUwwks62v'}).base('appsE68H46tsOnWMG');
+// init echart instance
+const chart = echarts.init(chartDom);
+let progressPercentage = null;
+
+window.onload = function() {
+  const form = document.getElementById("chart-form");
+  form.onsubmit = OnSubmit.bind(form);
+  form.onchange = OnSubmit.bind(form);
+  // loadTestValue();
+  OnSubmit();
+};
+
 function drawChart(projectedData,formData){
 
     const seriesSharedOption = {
@@ -376,19 +412,4 @@ function submitRecordToAirTable(formData){
     alert('Succefully Submitted');
   });
 }
-function loadTestValue(){
-  document.getElementById('fullName').value = 'Sohaib Ahsan';
-  document.getElementById('email').value = 's@s.com';
-  document.getElementById('startDate').value = '2022-01-01';
-  document.getElementById('currentDate').value = '2022-12-31';
-  document.getElementById('startValue').value = 1;
- document.getElementById('currentValue').value = 37;
-}
-function clearForm(){
-  document.getElementById('fullName').value = '';
-  document.getElementById('email').value = '';
-  document.getElementById('startDate').value = '';
-  document.getElementById('currentDate').value = '';
-  document.getElementById('startValue').value = '';
-  document.getElementById('currentValue').value = '';
-}
+
