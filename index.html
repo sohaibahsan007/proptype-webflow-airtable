@@ -36,17 +36,28 @@
         </div>
         <hr class="my-4">
         <div class="row gy-3">
+          <div class="col-md-12">
+            <div class="row justify-content-between">
+              <div class="col-6">
+                <label for="calculationValue" class="form-label">Calculation (%)</label>
+              </div>
+              <div class="col-6 text-end">
+                 <strong id="calculationValueLabel">5</strong>%
+              </div>
+            </div>
+            <input type="range" class="form-range" id="calculationValue" value="1" step="0.1" min="0.1" max="2">
+          </div>
           <div class="col-md-6">
             <label for="startDate" class="form-label">Start Date</label>
             <input type="date" class="form-control" id="startDate" placeholder=""  required>
           </div>
           <div class="col-md-6">
-            <label for="startDate" class="form-label">Start Value</label>
-            <input type="number" class="form-control" id="startValue" placeholder="e.g # of pages"  required>
+            <label for="currentDate" class="form-label">Goal Date</label>
+            <input type="date" class="form-control" id="currentDate" placeholder=""  required>
           </div>
           <div class="col-md-6">
-            <label for="currentDate" class="form-label">Current Date</label>
-            <input type="date" class="form-control" id="currentDate" placeholder=""  required>
+            <label for="startDate" class="form-label">Start Value</label>
+            <input type="number" class="form-control" id="startValue" placeholder="e.g # of pages"  required>
           </div>
           <div class="col-md-6">
             <label for="currentDate" class="form-label">Current Value</label>

@@ -3,7 +3,7 @@ function getDates(startDate, endDate, interval) {
   const steps = duration / interval;
   return Array.from({length: steps+1}, (v,i) => new Date(startDate.valueOf() + (interval * i)));
 }
-function prepareDateForProjection(formData){
+function prepareDataForProjection(formData){
   const startDate = new Date(formData.startDate);
   const currentDate = new Date(formData.currentDate);
   let datesList = getDates(startDate, currentDate, 1000*60*60*24);
@@ -12,9 +12,10 @@ function prepareDateForProjection(formData){
   datesList = getDates(startDate, currentDate, 1000*60*60*24);
   const startValue = parseFloat(formData.startValue);
   const currentValue = parseFloat(formData.currentValue);
+  const calculationValue = parseFloat(formData.calculationValue);
 
   // prepare the projection list
-  let projectedList = prepareListForProjection(datesList, startValue, currentValue);
+  let projectedList = prepareListForProjection(datesList, startValue, currentValue,calculationValue);
 
   // find max value available in projected list
   let nearestValue = projectedList[projectedList?.length-1]?.startValue;
@@ -30,24 +31,25 @@ function prepareDateForProjection(formData){
   do {
     currentDate.setDate(currentDate.getDate() + daysToAdd);
     datesList = getDates(startDate, currentDate, 1000*60*60*24);
-    projectedList = prepareListForProjection(datesList, startValue, currentValue);
+    projectedList = prepareListForProjection(datesList, startValue, currentValue,calculationValue);
     nearestValue = projectedList[projectedList?.length-1]?.startValue;
     difference = currentValue - nearestValue;
   } while (difference > 0);
   return projectedList;
 
 }
-function prepareListForProjection(datesList, startValue, currentValue){
+function prepareListForProjection(datesList, startValue, currentValue,calculationValue){
   const projectList = [];
+  calculationValue = (calculationValue ?? 1)/100;
   // irritate by each date and prepare the data for the chart
   for(let i=0; i<datesList.length; i++){
     const date = datesList[i];
 
     // at 1% improvement, the value will be 1.01 times the previous value
-    const improvementValue = i > 0 ? (projectList[i-1].startValue+ (projectList[i-1].startValue*0.01)): 0;
+    const improvementValue = i > 0 ? (projectList[i-1].startValue+ (projectList[i-1].startValue*calculationValue)): 0;
 
     // at 1% decline, the value will be 0.99 times the previous value
-    const declineValue  = i > 0 ? (projectList[i-1].startValueNegative - (projectList[i-1].startValueNegative*0.01)): 0;
+    const declineValue  = i > 0 ? (projectList[i-1].startValueNegative - (projectList[i-1].startValueNegative*calculationValue)): 0;
 
     const _startValue = i == 0 ?  startValue : improvementValue;
     const _startValueNegative = i == 0 ?  startValue : declineValue;
@@ -60,6 +62,8 @@ function prepareListForProjection(datesList, startValue, currentValue){
       date: date?.toLocaleDateString("en-US"),
       startValue: _startValue,
       startValueNegative: _startValueNegative,
+      progressValue: _startValue,
+      progressValueNegative: _startValueNegative,
       currentValue: _currentValue,
       currentValueNegative: _currentValueNegative,
       goalAchievedOnIndex: _currentValue > currentValue ? _currentValue : null,
@@ -73,8 +77,8 @@ function loadTestValue(){
   document.getElementById('email').value = 's@s.com';
   document.getElementById('startDate').value = '2022-01-01';
   document.getElementById('currentDate').value = '2022-12-31';
-  document.getElementById('startValue').value = 1;
- document.getElementById('currentValue').value = 37;
+  document.getElementById('startValue').value = 30;
+ document.getElementById('currentValue').value = 5;
 }
 function clearForm(){
   document.getElementById('fullName').value = '';
@@ -93,8 +97,10 @@ function OnSubmit(event){
   const currentDate = document.getElementById('currentDate').value;
   const startValue = document.getElementById('startValue').value;
   const currentValue = document.getElementById('currentValue').value;
-  // const currentValueRange = document.getElementById('currentValueRange').value;
-  const formData = {fullName, email, startDate, currentDate, startValue, currentValue};
+  let calculationValue = document.getElementById('calculationValue').value;
+  calculationValue = calculationValue < 0.1 ? 0.1 : calculationValue;
+  document.getElementById('calculationValueLabel').innerHTML = calculationValue;
+  const formData = {fullName, email, startDate, currentDate, startValue, currentValue,calculationValue};
   let error = "";
   if(fullName == ""){
     error += "Please enter your full name.\n";
@@ -134,7 +140,7 @@ function OnSubmit(event){
   }
   if(error == ""){
     document.getElementById('submitBtn').disabled = false;
-    const projectedData = prepareDateForProjection(formData);
+    const projectedData = prepareDataForProjection(formData);
     drawChart(projectedData,formData);
 
     if(event?.type == "submit"){
@@ -147,7 +153,22 @@ function OnSubmit(event){
     document.getElementById('submitBtn').disabled = true;
   }
 }
-
+function nFormatter(num, digits) {
+  const lookup = [
+    { value: 1, symbol: "" },
+    { value: 1e3, symbol: "k" },
+    { value: 1e6, symbol: "M" },
+    { value: 1e9, symbol: "G" },
+    { value: 1e12, symbol: "T" },
+    { value: 1e15, symbol: "P" },
+    { value: 1e18, symbol: "E" }
+  ];
+  const rx = /\.0+$|(\.[0-9]*[1-9])0+$/;
+  var item = lookup.slice().reverse().find(function(item) {
+    return num >= item.value;
+  });
+  return item ? (num / item.value).toFixed(digits).replace(rx, "$1") + item.symbol : "0";
+}
 
 /// this will go into body section
 
@@ -164,7 +185,7 @@ window.onload = function() {
   const form = document.getElementById("chart-form");
   form.onsubmit = OnSubmit.bind(form);
   form.onchange = OnSubmit.bind(form);
-  // loadTestValue();
+  loadTestValue();
   OnSubmit();
 };
 
@@ -183,6 +204,19 @@ function drawChart(projectedData,formData){
         focus: "series",
       },
     };
+    const progressMarkLineStyle={
+      lineStyle: {
+        width: 5,
+        color: '#4285f4',
+        type: 'solid',
+        curveness: 1,
+        shadowBlur: 6,
+        shadowOffsetX: 3,
+        shadowOffsetY: 3,
+        shadowColor: 'rgba(0,0,0,0.2)'
+      },
+      symbolSize: 0
+    };
     const color = ['#fbbc04', '#ee6666',  '#3ba272','#3ba272','#3ba272','#3ba272','#3ba272','#3ba272'];
     const findCurrentProgress = projectedData?.find(item => item.goalAchievedOnIndex != null);
     const currentProgressIndex = projectedData?.findIndex(item => item.goalAchievedOnIndex != null);
@@ -193,6 +227,15 @@ function drawChart(projectedData,formData){
     const achievementPercentage = (findCurrentProgress?.startValue/ achievementPoint?.startValue)*100;
     const achievementPercentageNegative = (achievementPoint?.startValueNegative/findCurrentProgressNegative?.startValueNegative)*100;
     progressPercentage = parseFloat(achievementPercentage > -1 ? achievementPercentage : -1*achievementPercentageNegative)?.toFixed(2);
+    const progressRemaining = (100 - (progressPercentage < 0 ? 0 : progressPercentage)).toFixed(2);
+    const daysRemaining = parseInt(achievementPoint?.id - currentProgress?.id);
+    const remainingProgress = JSON.parse(JSON.stringify(currentProgress));
+    remainingProgress.date = currentProgress?.currentValue ? currentProgress?.date : projectedData?.[0].date;
+    remainingProgress.currentValue = currentProgress?.currentValue ?? projectedData?.[0].startValue;
+
+    console.log(remainingProgress);
+
+    console.log(currentProgress,achievementPoint);
     const markPoint ={
       data: [
         {
@@ -201,14 +244,14 @@ function drawChart(projectedData,formData){
           symbol: 'arrow',
           symbolSize: 20,
           symbolOffset: [0, 0] ,
-          symbolRotate: -100*symbolRotateBasedOnProgress,
+          symbolRotate: (progressPercentage < 0 ? -90: -135)*symbolRotateBasedOnProgress,
           itemStyle: {
             color: '#4285f4',
             shadowColor: 'rgb(13 110 253 / 50%)',
             shadowBlur: 5
           },
           label: {
-            formatter: `Current Progress Score: ${formData?.currentValue} \n Current Progress (%): ${progressPercentage}%`,
+            formatter: `Current Progress Score: ${nFormatter(formData?.currentValue,2)} \n Current Progress (%): ${progressPercentage}%`,
             position: 'left',
             align: 'right',
             lineHeight: 20,
@@ -240,7 +283,7 @@ function drawChart(projectedData,formData){
             color: 'red',
           },
           label: {
-            formatter: '1% \n Decline Goal Score: ' + parseFloat(achievementPoint?.startValueNegative).toFixed(2),
+            formatter: `${nFormatter(formData?.calculationValue,2)}% \n Decline Goal Score: ` + parseFloat(achievementPoint?.startValueNegative).toFixed(2),
             position: 'bottom',
             align: 'center',
             lineHeight: 14,
@@ -258,7 +301,7 @@ function drawChart(projectedData,formData){
                 xAxis: achievementPoint?.date,
                 yAxis: achievementPoint?.startValue,
                 label: {
-                  formatter: '1% \n Improvement Goal Score: ' + parseFloat(achievementPoint?.startValue)?.toFixed(2),
+                  formatter: `${nFormatter(formData?.calculationValue,2)}% \n Improvement Goal Score: ` + nFormatter(achievementPoint?.startValue,2),
                   position: 'insideMiddleTop',
                   padding: [3, 400, 5, 6],
                   fontSize: 15,
@@ -270,7 +313,23 @@ function drawChart(projectedData,formData){
                   color: 'green',
                 }
               },
-            ]
+              [
+                {
+                  coord: [remainingProgress?.date, remainingProgress?.currentValue],
+                  label: {
+                    position: 'insideMiddleBottom',
+                    formatter: `Remaining: ${progressRemaining}% \n Days to go: ${daysRemaining}days`,
+                    lineHeight:15
+                  },
+                  ...progressMarkLineStyle
+
+                },
+                {
+                  coord: [achievementPoint?.date, achievementPoint?.startValue],
+                  ...progressMarkLineStyle
+                }
+              ]
+            ],
       };
     const option = {
       xAxis: {
@@ -283,7 +342,7 @@ function drawChart(projectedData,formData){
           show: false,
         },
         axisLabel:{
-           margin: 80
+           margin: 80,
         }
       },
       legend: {
@@ -301,6 +360,11 @@ function drawChart(projectedData,formData){
       yAxis:  {
         type: 'value',
         scale: true,
+        axisLabel: {
+          formatter: function (value, index) {
+            return nFormatter(value,2);
+        }
+        }
       },
       dataZoom: [
         {
@@ -348,7 +412,7 @@ function drawChart(projectedData,formData){
                 //overflow: 'break',
                 lineHeight: 25,
                 fontSize: 16,
-                text: `You have achieved ${progressPercentage}% of 1% Daily ${achievementPercentage > -1 ? 'Improvement': 'Decline'} Goal`,
+                text: `You have achieved ${progressPercentage}% of ${formData?.calculationValue}% Daily ${achievementPercentage > -1 ? 'Improvement': 'Decline'} Goal`,
               },
             }
           ]
@@ -356,41 +420,30 @@ function drawChart(projectedData,formData){
       ],
       series: [
         {
-          data: projectedData?.map(d => parseFloat(d.startValue)?.toFixed(2) ),
-          name: 'Projected 1% BETTER EVERY DAY',
+          data: projectedData?.map(d => parseFloat(d.startValue)),
+          name: `Projected ${formData?.calculationValue}% BETTER EVERY DAY`,
           smooth: true,
           ...seriesSharedOption,
           markLine,
           markPoint
         },
         {
-          data: projectedData?.map(d => parseFloat(d.startValueNegative)?.toFixed(2) ),
-          name: 'Projected 1% DECLINE EVERY DAY',
+          data: projectedData?.map(d => parseFloat(d.startValueNegative) ),
+          name: `Projected ${formData?.calculationValue}% DECLINE EVERY DAY`,
           ...seriesSharedOption,
           markPoint
         },
+        {
+          data: projectedData?.filter(item => item.startValue <= achievementPoint?.startValue)?.map(d => parseFloat(d.startValue)?.toFixed(2) ),
+          ...seriesSharedOption,
+        },
       ]
     };
+
+
     option && chart.setOption(option);
-}
-function getAirTableRecords(){
-  airtableBase('User_Data').select({
-    maxRecords: 3,
-    view: 'Grid view'
-  }).eachPage(function page(records, fetchNextPage) {
-    // This function (`page`) will get called for each page of records.
 
-    records.forEach(function(record) {
-        console.log('Retrieved', record.get('full_name'));
-    });
-
-    // To fetch the next page of records, call `fetchNextPage`.
-    // If there are more records, `page` will get called again.
-    // If there are no more records, `done` will get called.
-    fetchNextPage();
-}, function done(err) {
-    if (err) { console.error(err); return; }
-});
+    // console.table(projectedData);
 }
 function submitRecordToAirTable(formData){
   airtableBase('User_Data').create([
