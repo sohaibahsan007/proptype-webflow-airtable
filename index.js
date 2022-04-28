@@ -123,26 +123,26 @@ function OnSubmit(event){
   document.getElementById('calculationValueLabel').innerHTML = calculationValue + '%';
   const formData = {fullName, email, startDate, currentDate, startValue, currentValue,calculationValue};
   let error = "";
-  if(fullName == ""){
+  if(fullName == "" || fullName == undefined){
     error += "Please enter your full name.\n";
   }
-  if(email == ""){
+  if(email == "" || email == undefined){
     error += "Please enter your email.\n";
   }
-  if(startDate == ""){
+  if(startDate == "" || startDate == undefined){
     error += "Please enter your start date.\n";
-  }else if(currentDate == ""){
+  }else if(currentDate == "" || currentDate == undefined){
     const date = new Date(startDate);
     const date_NextYear = new Date(date.setDate(date.getDate() + 365));
     document.getElementById('currentDate').value = date_NextYear?.toJSON()?.slice(0,10);
   }
-  if(currentDate == ""){
+  if(currentDate == "" || currentDate == undefined){
     error += "Please enter your current date.\n";
   }
-  if(startValue == ""){
+  if(startValue == "" || startValue == undefined){
     error += "Please enter your start value.\n";
   }
-  if(currentValue == ""){
+  if(currentValue == "" || currentValue == undefined){
     error += "Please enter your current value.\n";
   }
   if(startValue != "" && currentValue != "" && startValue == currentValue){
@@ -159,6 +159,7 @@ function OnSubmit(event){
        alert("Current date must have atleast 7 days of difference from Start date.\n");
     }
   }
+
   if(error == ""){
     document.getElementById('submitBtn').disabled = false;
     const projectedData = prepareDataForProjection(formData);
@@ -171,6 +172,7 @@ function OnSubmit(event){
   }else if(error != "" && event?.type == "submit"){
     alert(error);
   }else if(error != "" && event?.type == "change"){
+    console.error(error);
     document.getElementById('submitBtn').disabled = true;
   }
 }
@@ -241,9 +243,9 @@ function drawChart(projectedData,formData){
 
   try {
   const color = ['#fbbc04', '#ee6666',  '#3ba272','#3ba272','#3ba272','#3ba272','#3ba272','#3ba272'];
-  const findCurrentProgress = projectedData?.find(item => item.goalAchievedOnIndex != null);
-  const currentProgressIndex = projectedData?.findIndex(item => item.goalAchievedOnIndex != null);
-  const findCurrentProgressNegative = projectedData?.find(item => item.goalAchievedOnIndexNegative != null);
+  const findCurrentProgress = projectedData?.find(item => item?.goalAchievedOnIndex != null);
+  const currentProgressIndex = projectedData?.findIndex(item => item?.goalAchievedOnIndex != null);
+  const findCurrentProgressNegative = projectedData?.find(item => item?.goalAchievedOnIndexNegative != null);
   const currentProgress = findCurrentProgress ?? findCurrentProgressNegative;
   const achievementPoint = projectedData?.find(item => new Date(item?.date)?.toLocaleDateString("en-US") == new Date(formData.currentDate)?.toLocaleDateString("en-US"));
   const symbolRotateBasedOnProgress = 1 - currentProgressIndex/projectedData?.length;
