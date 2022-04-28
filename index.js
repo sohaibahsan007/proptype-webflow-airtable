@@ -14,7 +14,7 @@ window.onload = function() {
   const form = document.getElementById("chart-form");
   form.onsubmit = OnSubmit.bind(form);
   form.onchange = OnSubmit.bind(form);
-  // loadTestValue();
+  loadTestValue();
   OnSubmit();
 };
 
@@ -99,7 +99,7 @@ function loadTestValue(){
   document.getElementById('startDate').value = '2022-01-01';
   document.getElementById('currentDate').value = '2022-12-31';
   document.getElementById('startValue').value = 2;
- document.getElementById('currentValue').value = 120;
+  // document.getElementById('currentValue').value = 60;
 }
 function clearForm(){
   document.getElementById('fullName').value = '';
@@ -141,9 +141,6 @@ function OnSubmit(event){
   }
   if(startValue == "" || startValue == undefined){
     error += "Please enter your start value.\n";
-  }
-  if(currentValue == "" || currentValue == undefined){
-    error += "Please enter your current value.\n";
   }
   if(startValue != "" && currentValue != "" && startValue == currentValue){
     error += "Start value and current value cannot be same.\n";
@@ -246,12 +243,12 @@ function drawChart(projectedData,formData){
   const findCurrentProgress = projectedData?.find(item => item?.goalAchievedOnIndex != null);
   const currentProgressIndex = projectedData?.findIndex(item => item?.goalAchievedOnIndex != null);
   const findCurrentProgressNegative = projectedData?.find(item => item?.goalAchievedOnIndexNegative != null);
-  const currentProgress = findCurrentProgress ?? findCurrentProgressNegative;
+  const currentProgress = (findCurrentProgress ?? findCurrentProgressNegative) ?? projectedData?.[0];
   const achievementPoint = projectedData?.find(item => new Date(item?.date)?.toLocaleDateString("en-US") == new Date(formData.currentDate)?.toLocaleDateString("en-US"));
   const symbolRotateBasedOnProgress = 1 - currentProgressIndex/projectedData?.length;
-  const achievementPercentage = (findCurrentProgress?.startValue/ achievementPoint?.startValue)*100;
-  const achievementPercentageNegative = (achievementPoint?.startValueNegative/findCurrentProgressNegative?.startValueNegative)*100;
-  progressPercentage = parseFloat(achievementPercentage > -1 ? achievementPercentage : -1*achievementPercentageNegative)?.toFixed(2);
+  const achievementPercentage = ((findCurrentProgress?.startValue/ achievementPoint?.startValue)*100);
+  const achievementPercentageNegative = ((achievementPoint?.startValueNegative/findCurrentProgressNegative?.startValueNegative)*100);
+  progressPercentage = (parseFloat(achievementPercentage > -1 ? achievementPercentage : -1*achievementPercentageNegative) || 0)?.toFixed(2);
   const progressRemaining = (100 - (progressPercentage < 0 ? 0 : progressPercentage)).toFixed(2);
   const daysRemaining = parseInt(achievementPoint?.id - currentProgress?.id);
   const scoreRemaining = parseFloat(achievementPoint?.startValue - currentProgress?.startValue).toFixed(2);
@@ -329,7 +326,7 @@ function drawChart(projectedData,formData){
               xAxis: achievementPoint?.date,
               yAxis: achievementPoint?.startValue,
               label: {
-                formatter: `{bold|${nFormatter(formData?.calculationValue,2)}%} \n Improvement Goal Score: {bold|${nFormatter(achievementPoint?.startValue,2)}}`,
+                formatter: `{bold|${formData?.calculationValue}%} \n Improvement Goal Score: {bold|${nFormatter(achievementPoint?.startValue,2)}}`,
                 position: 'insideMiddleTop',
                 padding: [3, 400, 5, 6],
                 fontSize: 15,
@@ -351,7 +348,7 @@ function drawChart(projectedData,formData){
                   padding: 5,
                   formatter: [
                     `${scoreRemaining < 0 ? 'Acheived': 'Remaining'} By: {bold|${scoreRemaining < 0? -1*(progressRemaining) : progressRemaining}%}`,
-                    `${scoreRemaining < 0 ? 'Acheived By No of Days' : 'No of Days Left'}: {bold|${scoreRemaining < 0? -1*daysRemaining: daysRemaining}days}`,
+                    `${scoreRemaining < 0 ? 'Acheived By #Days' : '#Days Left'}: {bold|${scoreRemaining < 0? -1*daysRemaining: daysRemaining}days}`,
                     `${scoreRemaining < 0 ? 'Extra Score': 'Score To Go'}: {bold|${scoreRemaining < 0 ? -1*scoreRemaining: scoreRemaining}}`].join('\n'),
                   rich: {
                     bold: {
@@ -434,7 +431,7 @@ function drawChart(projectedData,formData){
               r: 6,
             },
             style: {
-              fill: achievementPercentage > -1 ? (scoreRemaining < -1 ? '#3ba272': '#fff') : '#ee6666',
+              fill: progressPercentage < 0 ? '#ee6666': (scoreRemaining < 0 ? '#3ba272': '#fff') ,
               lineWidth: 1,
               shadowBlur: 8,
               shadowOffsetX: 3,
@@ -457,7 +454,7 @@ function drawChart(projectedData,formData){
               [
                 `You have achieved {bold|${progressPercentage < 0 ? -1*progressPercentage : progressPercentage}%} of Daily {bold|${formData?.calculationValue}%} ${achievementPercentage > -1 ? 'Improvement': 'Decline'} Goal`,
                 `${scoreRemaining < 0 ? 'Acheived': 'Remaining'} By: {bold|${scoreRemaining < 0? -1*(progressRemaining) : progressRemaining}%}`,
-                    `${scoreRemaining < 0 ? 'Acheived By No of Days' : 'No of Days Left'}: {bold|${scoreRemaining < 0? -1*daysRemaining: daysRemaining}days}`,
+                    `${scoreRemaining < 0 ? 'Acheived By #Days' : '#Days Left'}: {bold|${scoreRemaining < 0? -1*daysRemaining: daysRemaining}days}`,
                     `${scoreRemaining < 0 ? 'Extra Score': 'Score To Go'}: {bold|${scoreRemaining < 0 ? -1*scoreRemaining: scoreRemaining}}`].join('\n'),
               rich: {
                 bold: {
