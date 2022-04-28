@@ -14,7 +14,9 @@ window.onload = function() {
   const form = document.getElementById("chart-form");
   form.onsubmit = OnSubmit.bind(form);
   form.onchange = OnSubmit.bind(form);
-  loadTestValue();
+  if (location.hostname === "localhost" || location.hostname === "127.0.0.1"){
+    loadTestValue();
+  }
   OnSubmit();
 };
 
