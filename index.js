@@ -452,7 +452,7 @@ function drawChart(projectedData,formData){
               fontSize: 16,
               text:
               [
-                `You have achieved {bold|${progressPercentage < 0 ? -1*progressPercentage : progressPercentage}%} of Daily {bold|${formData?.calculationValue}%} ${achievementPercentage > -1 ? 'Improvement': 'Decline'} Goal`,
+                `You have achieved {bold|${progressPercentage < 0 ? -1*progressPercentage : progressPercentage}%} of Daily {bold|${formData?.calculationValue}%} ${progressPercentage > -1 ? 'Improvement': 'Decline'} Goal`,
                 `${scoreRemaining < 0 ? 'Acheived': 'Remaining'} By: {bold|${scoreRemaining < 0? -1*(progressRemaining) : progressRemaining}%}`,
                     `${scoreRemaining < 0 ? 'Acheived By #Days' : '#Days Left'}: {bold|${scoreRemaining < 0? -1*daysRemaining: daysRemaining}days}`,
                     `${scoreRemaining < 0 ? 'Extra Score': 'Score To Go'}: {bold|${scoreRemaining < 0 ? -1*scoreRemaining: scoreRemaining}}`].join('\n'),
