@@ -18,6 +18,7 @@
   <main class="row" style="height: 80vh;">
     <div class="col-md-3 col-lg-3">
       <form id="chart-form" class="needs-validation" >
+        <h4 class="mb-3">Step 1: Contact details</h4>
         <div class="row g-3">
           <div class="col-sm-12">
             <label for="fullName" class="form-label">Name</label>
@@ -35,8 +36,9 @@
           </div>
         </div>
         <hr class="my-4">
+        <h4 class="mb-3">Step 2: Days to track</h4>
         <div class="row gy-3">
-          <div class="col-md-12">
+          <div class="col-md-12" hidden>
             <div class="row justify-content-between">
               <div class="col-6">
                 <label for="calculationValue" class="form-label">Calculation (%)</label>
@@ -47,26 +49,39 @@
             </div>
             <input type="range" class="form-range" id="calculationValue" value="1" step="0.1" min="0.1" max="2">
           </div>
-          <div class="col-md-6">
-            <label for="startDate" class="form-label">Start Date</label>
+          <div class="col-md-12">
+            <input type="number" class="form-control" id="daysToTrack" placeholder="" min="1"  required>
+          </div>
+        </div>
+
+        <hr class="my-4">
+        <h4 class="mb-3">Step 3: Goal detail</h4>
+        <div class="row gy-3">
+          <div class="col-md-12">
+            <textarea class="form-control" id="goalDetail"  name="goalDetail" placeholder="purpose of goal?" rows="3" cols="50"  required>
+            </textarea>
+          </div>
+        </div>
+
+        <hr class="my-4">
+        <h4 class="mb-3">Step 4: Starting When</h4>
+        <div class="row gy-3">
+          <div class="col-md-12">
             <input type="date" class="form-control" id="startDate" placeholder=""  required>
           </div>
-          <div class="col-md-6">
-            <label for="currentDate" class="form-label">Goal Date</label>
-            <input type="date" class="form-control" id="currentDate" placeholder=""  required>
-          </div>
-          <div class="col-md-6">
-            <label for="startDate" class="form-label">Start Value</label>
+        </div>
+
+        <hr class="my-4">
+        <h4 class="mb-3">Step 5: Starting position</h4>
+        <div class="row gy-3">
+          <div class="col-md-12">
+            <label for="startDate" class="form-label">Start position value</label>
             <input type="number" class="form-control" id="startValue" placeholder="e.g # of pages"  required>
           </div>
-          <div class="col-md-6">
-            <label for="currentDate" class="form-label">Current Value</label>
+          <div class="col-md-12">
+            <label for="currentValue" class="form-label">Current Value</label>
             <input type="number" class="form-control" id="currentValue" placeholder="e.g # of pages" required>
           </div>
-          <!-- <div class="col-md-12">
-            <label for="currentDate" class="form-label">Current Value</label>
-            <input type="range" class="form-range" id="currentValueRange">
-          </div> -->
         </div>
 
         <hr class="my-4">

@@ -99,15 +99,15 @@ function loadTestValue(){
   document.getElementById('fullName').value = 'Sohaib Ahsan';
   document.getElementById('email').value = 's@s.com';
   document.getElementById('startDate').value = '2022-01-01';
-  document.getElementById('currentDate').value = '2022-12-31';
-  document.getElementById('startValue').value = 2;
+  document.getElementById('daysToTrack').value = 30;
+  document.getElementById('startValue').value = 1;
   // document.getElementById('currentValue').value = 60;
 }
 function clearForm(){
   document.getElementById('fullName').value = '';
   document.getElementById('email').value = '';
   document.getElementById('startDate').value = '';
-  document.getElementById('currentDate').value = '';
+  document.getElementById('daysToTrack').value = '';
   document.getElementById('startValue').value = '';
   document.getElementById('currentValue').value = '';
 }
@@ -117,13 +117,14 @@ function OnSubmit(event){
   const fullName = document.getElementById('fullName')?.value;
   const email = document.getElementById('email')?.value;
   const startDate = document.getElementById('startDate')?.value;
-  const currentDate = document.getElementById('currentDate')?.value;
+  const daysToTrack = document.getElementById('daysToTrack')?.value;
+  let currentDate;
   const startValue = document.getElementById('startValue')?.value;
   const currentValue = document.getElementById('currentValue')?.value;
   let calculationValue = document.getElementById('calculationValue')?.value;
   calculationValue = calculationValue < 0.1 ? 0.1 : calculationValue;
   document.getElementById('calculationValueLabel').innerHTML = calculationValue + '%';
-  const formData = {fullName, email, startDate, currentDate, startValue, currentValue,calculationValue};
+
   let error = "";
   if(fullName == "" || fullName == undefined){
     error += "Please enter your full name.\n";
@@ -131,12 +132,13 @@ function OnSubmit(event){
   if(email == "" || email == undefined){
     error += "Please enter your email.\n";
   }
+
   if(startDate == "" || startDate == undefined){
     error += "Please enter your start date.\n";
   }else if(currentDate == "" || currentDate == undefined){
     const date = new Date(startDate);
-    const date_NextYear = new Date(date.setDate(date.getDate() + 365));
-    document.getElementById('currentDate').value = date_NextYear?.toJSON()?.slice(0,10);
+    const date_NextYear = new Date(date.setDate(date.getDate() + parseInt(daysToTrack)));
+    currentDate = date_NextYear;
   }
   if(currentDate == "" || currentDate == undefined){
     error += "Please enter your current date.\n";
@@ -160,6 +162,7 @@ function OnSubmit(event){
   }
 
   if(error == ""){
+    const formData = {fullName, email, startDate, currentDate, startValue, currentValue,calculationValue};
     document.getElementById('submitBtn').disabled = false;
     const projectedData = prepareDataForProjection(formData);
     drawChart(projectedData,formData);
@@ -189,7 +192,7 @@ function nFormatter(num, digits) {
   var item = lookup.slice().reverse().find(function(item) {
     return num >= item?.value;
   });
-  return item ? (num / item.value).toFixed(digits).replace(rx, "$1") + item.symbol : "0";
+  return item ? (num / item.value).toFixed(digits).replace(rx, "$1") + item.symbol : num;
 }
 function submitRecordToAirTable(formData){
   airtableBase('User_Data').create([
