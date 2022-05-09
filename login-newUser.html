@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="" />
+    <meta name="author" content="Sohaib Ahsan," />
+    <title>Prototype of Webflow with AirTable</title>
+    <!-- CSS only -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3"
+      crossorigin="anonymous"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.3.2/dist/echarts.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/airtable@0.11.3/build/airtable.browser.js"></script>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="multi-step.css">
+  </head>
+  <body>
+ 
+
+    <main>
+      <section class="credentials-sections">
+        <h1>Welcome Back</h1>
+        <p>Join the world's largest community</p>
+        <div class="form-container">
+          <div class="form-container__btns">
+            <button class="login-btn">Login</button>
+            <button class="new-user-btn">New User</button>
+          </div>
+          <div class="form-container__form login-form">
+            <form>
+              <div>
+                <label for="name">Name</label class="form-label">
+                <input type="text" name="name" class="form-control"/>
+              </div>
+              <div>
+                <label for="email">Email</label class="form-label">
+                <input type="email" name="email" class="form-control"/>
+              </div>
+              <input class="btn btn-primary" type="submit" value="Login" />
+            </form>
+          </div>
+          <div class="form-container__form new-user-form multisteps-form ">
+            <!--progress bar-->
+           
+             
+                <div class="multisteps-form__progress">
+                  <button class="multisteps-form__progress-btn js-active" type="button" title="User Info"></button>
+                  <button class="multisteps-form__progress-btn" type="button" title="Address"></button>
+                  <button class="multisteps-form__progress-btn" type="button" title="Order Info"></button>
+                </div>
+             
+            
+            <!--form panels-->
+                      
+                <form class="multisteps-form__form">
+                  <!--single form panel-->
+                  <div class="multisteps-form__panel  js-active" data-animation="scaleIn">
+                   
+                    <div class="multisteps-form__content">
+                      <div>
+                        <label for="name" class="form-label">Name</label >
+                        <input type="text" name="name" class="form-control" placeholder="John Doe"/>
+                      </div>
+                      <div>
+                        <label for="email" class="form-label">Email</label >
+                        <input type="email" name="email" class="form-control" placeholder="johndoe@email.com"/>
+                      </div>
+                      <div class="">
+                        <button class="btn btn-primary ml-auto js-btn-next" type="button" title="Next">Next</button>
+                      </div>
+                    </div>
+                  </div>
+                  <!--single form panel-->
+                  <div class="multisteps-form__panel " data-animation="scaleIn">
+                    
+                    <div class="multisteps-form__content">
+                      <div>
+                        <label for="daysToTrack" class="form-label">Days to track</label >
+                        <input type="number" name="daysToTrack" class="form-control" placeholder="e.g. 30"/>
+                      </div>
+                      <div>
+                        <label for="details" class="form-label">Goal Details</label>
+                        <textarea class="form-control" name="details"  cols="30" rows="5"></textarea>
+                      </div>
+                      <div class="">
+                        <button class="btn btn-primary js-btn-prev" type="button" title="Prev">Prev</button>
+                        <button class="btn btn-primary ml-auto js-btn-next" type="button" title="Next">Next</button>
+                      </div>
+                    </div>
+                  </div>
+                  <!--single form panel-->
+                  <div class="multisteps-form__panel " data-animation="scaleIn">
+                   
+                    <div class="multisteps-form__content">
+                      <div>
+                        <label for="startDate" class="form-label">Start Date</label >
+                        <input type="date" name="startDate" class="form-control"/>
+                      </div>
+                      <div>
+                        <label for="startValue" class="form-label">Start Value</label >
+                        <input type="number" name="startValue" class="form-control" placeholder="e.g. 1"/>
+                      </div>
+                      <div>
+                        <label for="proof" class="form-label">Attach Proof</label>
+                        <input type="file" class="form-control" name="proof" id="">
+                      </div>
+                      <div class="row">
+                        <div class="">
+                          <button class="btn btn-primary js-btn-prev" type="button" title="Prev">Prev</button>
+                          <button class="btn btn-success ml-auto" type="button" title="Send">Submit</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                 
+                </form>
+                        
+          </div>
+        </div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const loginBtn = document.querySelector(".login-btn");
+const newUserBtn = document.querySelector(".new-user-btn");
+const loginForm = document.querySelector(".login-form");
+const newUserForm = document.querySelector(".new-user-form");
+
+loginBtn.classList.add('current')
+loginForm.style.display="block";
+loginBtn.addEventListener("click", function () {
+  loginBtn.classList.add('current')
+  newUserBtn.classList.remove('current')
+  loginForm.style.display="block";
+  newUserForm.style.display="none";
+});
+newUserBtn.addEventListener("click", function () {
+  newUserBtn.classList.add('current')
+  loginBtn.classList.remove('current')
+  loginForm.style.display="none";
+  newUserForm.style.display="block";
+});
+
+console.log(loginBtn);
+    </script>
+    <script src="index.js"></script>
+    <script src="multi-step.js"></script>
+  </body>
+</html>
