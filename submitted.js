@@ -39,6 +39,7 @@ function getDates(startDate, endDate, interval) {
   return Array.from({length: steps+1}, (v,i) => new Date(startDate.valueOf() + (interval * i)));
 }
 function prepareDataForProjection(formData){
+  formData.calculationValue = 1;
   const startDate = new Date(formData.startDate);
   const goalDate = new Date(formData.goalDate);
   let datesList = getDates(startDate, goalDate, 1000*60*60*24);
@@ -133,26 +134,7 @@ function nFormatter(num, digits) {
   });
   return item ? (num / item.value).toFixed(digits).replace(rx, "$1") + item.symbol : num;
 }
-function submitRecordToAirTable(formData){
-  airtableBase('User_Data').create([
-    {
-      "fields": {
-        "full_name": formData?.name,
-        "email": formData?.email,
-        "score_percentage": progressPercentage/100,
-        "type": progressPercentage > -1 ? "Improvement" : "Decline",
-      }
-    },
-  ], function(err) {
-    document.getElementById('submitBtn').disabled = false;
-    if (err) {
-      alert(err);
-      return;
-    }
-    clearForm();
-    alert('Succefully Submitted');
-  });
-}
+
 const seriesSharedOption = {
   symbol: "none",
   symbolSize: 2,
@@ -461,7 +443,7 @@ function addHistory(formData){
       <span class="start-position"><span>Start position :</span> ${formData?.startValue}</span>
     </p>
     <p class="activity-p">
-    <span class="start-position"><span>Goal Date :</span> ${new Date(formData?.startDate).toLocaleDateString()}</span>
+    <span class="start-position"><span>Goal Date :</span> ${new Date(formData?.goalDate).toLocaleDateString()}</span>
   </p>
     <p class="activity-p">
       <span class="start-position"><span>Current position :</span> ${formData?.currentValue || '...'}</span>

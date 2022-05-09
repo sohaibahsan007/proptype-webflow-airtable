@@ -1,3 +1,7 @@
+var Airtable = require('airtable');
+  // setup airtable
+const airtableBase = new Airtable({apiKey: 'keyVpI72WUwwks62v'}).base('appsE68H46tsOnWMG');
+
 const loginBtn = document.querySelector(".login-btn");
 const newUserBtn = document.querySelector(".new-user-btn");
 const loginForm = document.querySelector(".login-form");
@@ -38,7 +42,6 @@ function OnSubmit(event){
   const startValue = document.getElementById('startValue')?.value;
   const currentValue = document.getElementById('currentValue')?.value;
   const goalDetail = document.getElementById('goalDetail')?.value;
-  const calculationValue = 1;
 
   let error = "";
   if(name == "" || name == undefined){
@@ -84,12 +87,11 @@ function OnSubmit(event){
     }
   }
   if(error == ""){
-    const formData = {name, email, startDate, goalDate, startValue, currentValue,calculationValue,createdOn: new Date()};
+    const formData = {name, email, startDate, goalDate, startValue, currentValue,daysToTrack,goalDetail};
     document.getElementById('submitRegisterBtn').disabled = false;
     if(event?.type == "submit"){
         document.getElementById('submitRegisterBtn').disabled = true;
-        localStorage.formData = JSON.stringify(formData);
-        window.location = "submitted.html";
+        submitRecordToAirTable(formData);
     }else{
       localStorage.formData = null;
     }
@@ -108,4 +110,27 @@ function loadTestValue(){
   document.getElementById('startValue').value = 1;
   document.getElementById('goalDetail').value = "I'm going to track my daily book reading habbits.";
   // document.getElementById('currentValue').value = 60;
+}
+function submitRecordToAirTable(formData){
+  airtableBase('User_Data').create([
+    {
+      "fields": {
+        "name": formData?.name,
+        "email": formData?.email,
+        "startDate": new Date(formData?.startDate).toISOString(),
+        "goalDate": new Date(formData?.goalDate).toISOString(),
+        "startValue": parseFloat(formData?.startValue),
+        "daysToTrack": parseInt(formData?.daysToTrack),
+        "goalDetail": formData?.goalDetail,
+      }
+    },
+  ], function(err, records) {
+    document.getElementById('submitRegisterBtn').disabled = false;
+    if (err) {
+      alert(err);
+      return;
+    }
+    localStorage.formData = JSON.stringify(records?.[0].fields);
+    window.location = "submitted.html";
+  });
 }
