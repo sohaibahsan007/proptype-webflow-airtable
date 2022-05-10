@@ -30,6 +30,8 @@ window.onload = function() {
   if (location.hostname === "localhost" || location.hostname === "127.0.0.1"){
     loadTestValue();
   }
+  const loginForm = document.getElementById("login");
+  loginForm.onsubmit = loginSubmit.bind(loginForm);
 };
 function OnSubmit(event){
 
@@ -104,9 +106,9 @@ function OnSubmit(event){
 }
 function loadTestValue(){
   document.getElementById('name').value = 'Sohaib Ahsan';
-  document.getElementById('email').value = 's@s.com';
+  document.getElementById('email').value = 'test01@forenax.com';
   document.getElementById('startDate').value = '2022-01-01';
-  document.getElementById('daysToTrack').value = 30;
+  document.getElementById('daysToTrack').value = 300;
   document.getElementById('startValue').value = 1;
   document.getElementById('goalDetail').value = "I'm going to track my daily book reading habbits.";
   // document.getElementById('currentValue').value = 60;
@@ -133,4 +135,45 @@ function submitRecordToAirTable(formData){
     localStorage.formData = JSON.stringify(records?.[0].fields);
     window.location = "submitted.html";
   });
+}
+function loginSubmit(event){
+  if(event) event.preventDefault();
+  let error = '';
+  const email = document.getElementById('email_login')?.value;
+
+  if(email == "" || email == undefined){
+    error += "Please enter your email.\n";
+  }
+
+  if(error == ""){
+    if(event?.type == "submit"){
+      document.getElementById('submitLoginBtn').disabled = true;
+      airtableBase('User_Data').select({
+        maxRecords: 1,
+        view: "Grid view",
+        sort: [{field: "id", direction: "desc"}],
+        filterByFormula: `{email} = "${email}"`
+      })
+      .firstPage((err, records) => {
+           document.getElementById('submitLoginBtn').disabled = false;
+          if (err) {
+              alert('Login error, Please try again.');
+              console.log(err);
+          }
+          if(records.length > 0){
+              records[0].fields.existing = true;
+              localStorage.formData = JSON.stringify(records[0].fields);
+              window.location = "submitted.html";
+          }else{
+            alert('Email not found.');
+          }
+      });
+
+    }else{
+      localStorage.formData = null;
+    }
+  }else if(error != "" && event?.type == "submit"){
+    alert(error);
+  }
+
 }

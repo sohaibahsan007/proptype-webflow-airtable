@@ -79,16 +79,18 @@
           <h4 class="mb-3">Update today's progress</h4>
           <div class="row gy-3">
             <div class="col-md-12">
-              <label for="currentValue" class="form-label">Current Value</label>
-              <input type="number" class="form-control" id="currentValue" placeholder="e.g # of pages" required />
+              <div class="form-floating">
+                <input type="number" class="form-control" id="currentValue" placeholder="e.g # of pages" required />
+                <label for="currentValue">Current Position</label>
+              </div>
             </div>
             <div class="col-md-12">
-              <label for="currentValue" class="form-label">Attach Proof</label>
-              <input type="file" class="form-control" id="proof" required />
+              <label for="updateProof" class="form-label">Attach Proof</label>
+              <input type="file" class="form-control" id="proof" id="updateProof"/>
             </div>
           </div>
 
-          <button class="w-100 btn btn-primary btn-lg mt-4" id="submitBtn" type="submit">
+          <button class="w-100 btn btn-primary btn-lg mt-4" id="submitBtn" type="submit" disabled>
             Submit
           </button>
         </form>

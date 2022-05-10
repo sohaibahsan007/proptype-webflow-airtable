@@ -9,29 +9,78 @@ const airtableBase = new Airtable({apiKey: 'keyVpI72WUwwks62v'}).base('appsE68H4
 // init echart instance
 const chart = echarts.init(chartDom);
 let progressPercentage = null;
+let formData = {};
 
 window.onload = function() {
 if(localStorage?.formData){
-  const formData = JSON.parse(localStorage?.formData);
+  formData = JSON.parse(localStorage?.formData);
   if(!formData){
     window.location = 'index.html';
   }
-  drawForRegister(formData);
+  console.log(formData);
+  if(formData?.existing){
+    drawForLogin(formData);
+  }else{
+    drawForRegister(formData);
+  }
 
 }else{
   window.location = 'index.html';
 }
+
+// bind submitForm event
+
+const form = document.getElementById("updateForm");
+  form.onsubmit = updateSubmit.bind(form);
+  form.onchange = updateSubmit.bind(form);
 };
 
+function drawForLogin(formData){
+  document.getElementById('updateForm').hidden = false;
+  document.getElementById('sMessage').hidden = true;
+  if(formData?.updated){
+    hideForm();
+  }
+  loadGoalRecords(formData?.id);
+  const projectedData = prepareDataForProjection(formData);
+  addHistory(formData);
+  drawChart(projectedData,formData);
+}
 function drawForRegister(formData){
   document.getElementById('updateForm').hidden = true;
   document.getElementById('sMessage').hidden = false;
-  console.log(formData);
+  document.getElementById('sMessage').innerHTML = 'Your data has been submitted. you can know view Performance Chart in left. Return back after few days to report the progress.';
   const projectedData = prepareDataForProjection(formData);
   addHistory(formData);
   drawChart(projectedData,formData);
 }
 
+function updateSubmit(event){
+  if(event) event.preventDefault();
+  let error = '';
+  const currentValue = document.getElementById('currentValue')?.value;
+  formData.currentValue = currentValue;
+  const projectedData = prepareDataForProjection(formData);
+  drawChart(projectedData,formData);
+
+  if(currentValue == "" || currentValue == undefined){
+    error += "Please enter your progress update.\n";
+  }
+
+  if(error == ""){
+    document.getElementById('submitBtn').disabled = false;
+    if(event?.type == "submit"){
+      document.getElementById('submitBtn').disabled = true;
+      submitRecordToAirTable(currentValue);
+    }
+  }else if(error != "" && event?.type == "submit"){
+    alert(error);
+  } else if(error != "" && event?.type == "change"){
+    console.error(error);
+    document.getElementById('submitBtn').disabled = true;
+  }
+
+}
 
 function getDates(startDate, endDate, interval) {
   const duration = endDate - startDate;
@@ -108,16 +157,6 @@ function prepareListForProjection(datesList, startValue, currentValue,calculatio
   }
   return projectList;
 }
-
-function clearForm(){
-  document.getElementById('name').value = '';
-  document.getElementById('email').value = '';
-  document.getElementById('startDate').value = '';
-  document.getElementById('daysToTrack').value = '';
-  document.getElementById('startValue').value = '';
-  document.getElementById('currentValue').value = '';
-}
-
 function nFormatter(num, digits) {
   const lookup = [
     { value: 1, symbol: "" },
@@ -134,7 +173,6 @@ function nFormatter(num, digits) {
   });
   return item ? (num / item.value).toFixed(digits).replace(rx, "$1") + item.symbol : num;
 }
-
 const seriesSharedOption = {
   symbol: "none",
   symbolSize: 2,
@@ -161,7 +199,6 @@ const progressMarkLineStyle={
   },
   symbolSize: 0
 };
-
 function drawChart(projectedData,formData){
 
   try {
@@ -446,6 +483,30 @@ function addHistory(formData){
     <span class="start-position"><span>Goal Date :</span> ${new Date(formData?.goalDate).toLocaleDateString()}</span>
   </p>
     <p class="activity-p">
+      <span class="start-position"><span>Attachment :</span> image.jpeg</span>
+    </p>
+  </div>
+</div>
+`;
+  const historyContainer = document.querySelector('.history-container');
+  historyContainer.insertAdjacentHTML('afterbegin', dataHtml);
+}
+function addUpdateHistory(formData){
+  const dataHtml = `
+  <div class="recent-activity">
+  <div class="date-time-info">
+    <div class="date-time">
+      <span class="date-info">${new Date(formData?.createdOn).toLocaleDateString()}</span>
+      <span class="time-info">${new Date(formData?.createdOn).toLocaleTimeString()}</span>
+    </div>
+    <div class="recent">
+      <div class="outer-border"><span class="point"></span></div>
+    </div>
+  </div>
+
+  <div dir="auto" class="activity-details">
+    <p class="header-p"></p>
+    <p class="activity-p">
       <span class="start-position"><span>Current position :</span> ${formData?.currentValue || '...'}</span>
     </p>
     <p class="activity-p">
@@ -456,4 +517,55 @@ function addHistory(formData){
 `;
   const historyContainer = document.querySelector('.history-container');
   historyContainer.insertAdjacentHTML('afterbegin', dataHtml);
+}
+function submitRecordToAirTable(currentValue){
+  airtableBase('Goal_Record').create([
+    {
+      "fields": {
+        "user_id": formData?.id,
+        "currentValue": parseFloat(currentValue),
+        "progressPercentage": progressPercentage/100,
+      }
+    },
+  ], function(err, records) {
+    document.getElementById('submitBtn').disabled = false;
+    if (err) {
+      alert(err);
+      return;
+    }
+    const record = records[0]?.fields;
+    addUpdateHistory(record);
+    formData.updated = true;
+    localStorage.formData = JSON.stringify(formData);
+    hideForm();
+  });
+}
+function hideForm(){
+  document.getElementById('updateForm').hidden = true;
+    document.getElementById('sMessage').hidden = false;
+    document.getElementById('sMessage').innerHTML = 'Progress updated successfully';
+}
+function loadGoalRecords(user_id){
+    let currentValue = null;
+    airtableBase('Goal_Record').select({
+      // Selecting the first 3 records in Grid view:
+      maxRecords: 100,
+      view: "Grid view",
+      sort: [{field: "id", direction: "desc"}],
+      filterByFormula: `{user_id} = "${user_id}"`
+  }).eachPage(function page(records, fetchNextPage) {
+      if(!currentValue){
+        const sorted = records?.sort((a, b) => b?.fields?.id - a?.fields?.id);
+        currentValue = sorted?.[0]?.fields?.currentValue;
+        formData.currentValue = currentValue;
+        const projectedData = prepareDataForProjection(formData);
+        drawChart(projectedData,formData);
+      }
+      records?.sort((a, b) => a?.fields?.id - b?.fields?.id).forEach(function(record) {
+          addUpdateHistory(record.fields);
+      });
+      fetchNextPage();
+  }, function done(err) {
+      if (err) { console.error(err); return; }
+  });
 }
