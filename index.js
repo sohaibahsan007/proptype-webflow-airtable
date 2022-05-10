@@ -28,7 +28,7 @@ window.onload = function() {
   form.onsubmit = OnSubmit.bind(form);
   form.onchange = OnSubmit.bind(form);
   if (location.hostname === "localhost" || location.hostname === "127.0.0.1"){
-    loadTestValue();
+   loadTestValue();
   }
   const loginForm = document.getElementById("login");
   loginForm.onsubmit = loginSubmit.bind(loginForm);
@@ -166,6 +166,7 @@ function loginSubmit(event){
               window.location = "submitted.html";
           }else{
             alert('Email not found.');
+            newUserBtn.click();
           }
       });
 
