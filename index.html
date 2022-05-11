@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="description" content="" />
   <meta name="author" content="Sohaib Ahsan," />
-  <title>Prototype of Webflow with AirTable</title>
+  <title>One Percent DAO</title>
   <!-- CSS only -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
     integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous" />
@@ -18,7 +18,7 @@
 <body>
   <main>
     <section class="credentials-sections">
-      <h1>Welcome to Power of Gain</h1>
+      <h1>Welcome to the One Percent DAO</h1>
       <p>Show us your power of gain, and get free tokens.</p>
       <div class="form-container">
         <div class="form-container__btns">
@@ -41,11 +41,11 @@
         <div class="form-container__form new-user-form multisteps-form ">
           <!--progress bar-->
           <div class="multisteps-form__progress">
-            <button class="multisteps-form__progress-btn js-active" type="button" title="Contact Detail">Contact
-              Detail</button>
-            <button class="multisteps-form__progress-btn" type="button" title="Goal Detail">Goal Detail</button>
-            <button class="multisteps-form__progress-btn" type="button" title="Starting Position">Starting
-              Position</button>
+            <button class="multisteps-form__progress-btn js-active" type="button" title="Contact detail">Contact
+              detail</button>
+            <button class="multisteps-form__progress-btn" type="button" title="Goal detail">Goal detail</button>
+            <button class="multisteps-form__progress-btn" type="button" title="Starting position">Starting
+              position</button>
           </div>
           <!--form panels-->
           <form class="multisteps-form__form" id="register" class="needs-validation">
@@ -77,9 +77,9 @@
                 </div>
                 <div class="form-floating">
 
-                  <textarea class="form-control" id="goalDetail" name="goalDetail" placeholder="Goal Detail" rows="4" cols="50" required>
+                  <textarea class="form-control" id="goalDetail" name="goalDetail" placeholder="Goal Detail" rows="4" cols="50" style="height: 100px" required>
                         </textarea>
-                        <label for="details">Goal Details</label>
+                        <label for="details">Goal details</label>
                 </div>
                 <div class="">
                   <button class="btn btn-primary js-btn-prev" type="button" title="Prev">Prev</button>
@@ -92,17 +92,19 @@
 
               <div class="multisteps-form__content">
                 <div class="form-floating">
-
                   <input type="date" class="form-control" id="startDate" placeholder="" required>
-                  <label for="startDate" >Start Date</label>
+                  <label for="startDate" >Start date</label>
                 </div>
-                <div class="form-floating">
+                <div class="form-floating text-start">
                   <input type="number" class="form-control" id="startValue" placeholder="e.g # of pages" required />
-                  <label for="startValue" >Start Position</label>
+                  <label for="startValue" >Start position/value</label>
+                  <small class="text-muted">your start position/value(e.g # of pages, minutes exercised etc)</small>
                 </div>
-                <div>
-                  <label for="proof" >Attach Proof</label>
+
+                <div class="text-start">
+                  <label for="proof" >Attach proof</label>
                   <input type="file" class="form-control" name="proof" id="startProof">
+                  <small class="text-muted">proof of your starting progress(can be a picture of book's current page, or screen shot of minutes exercised)</small>
                 </div>
                 <div class="row">
                   <div class="">

@@ -183,22 +183,11 @@ const seriesSharedOption = {
     width: 3,
   },
   emphasis: {
+    disabled: true,
     focus: "series",
   },
 };
-const progressMarkLineStyle={
-  lineStyle: {
-    width: 5,
-    color: '#4285f4',
-    type: 'solid',
-    curveness: 1,
-    shadowBlur: 6,
-    shadowOffsetX: 3,
-    shadowOffsetY: 3,
-    shadowColor: 'rgba(0,0,0,0.2)'
-  },
-  symbolSize: 0
-};
+
 function drawChart(projectedData,formData){
 
   try {
@@ -222,6 +211,10 @@ function drawChart(projectedData,formData){
     bold: {
         fontWeight: 'bold',
     },
+    small: {
+        fontSize: 10,
+        color: '#999',
+  },
    };
   const markPoint ={
     data: [
@@ -238,7 +231,7 @@ function drawChart(projectedData,formData){
           shadowBlur: 5
         },
         label: {
-          formatter: `Current Progress Score: {bold|${nFormatter(formData?.currentValue,2)}} \n Current Progress (%): {bold|${progressPercentage < 0 ? -1*progressPercentage : progressPercentage}%}`,
+          formatter: `Current position: {bold|${nFormatter(formData?.currentValue,2)}} \n Current position (%): {bold|${progressPercentage < 0 ? -1*progressPercentage : progressPercentage}%}`,
           position: 'left',
           align: 'right',
           lineHeight: 20,
@@ -271,7 +264,7 @@ function drawChart(projectedData,formData){
           color: 'red',
         },
         label: {
-          formatter: `${nFormatter(formData?.calculationValue,2)}% \n Decline Goal Score: ` + parseFloat(achievementPoint?.startValueNegative).toFixed(2),
+          formatter: `${nFormatter(formData?.calculationValue,2)}% \n Decline Goal: ` + parseFloat(achievementPoint?.startValueNegative).toFixed(2),
           position: 'bottom',
           align: 'center',
           lineHeight: 14,
@@ -282,6 +275,22 @@ function drawChart(projectedData,formData){
       }
     ]
   };
+  const progressMarkLineStyle={
+    lineStyle: {
+      width: 5,
+      color: scoreRemaining >= 0 ? '#4285f4' : '#3ba272',
+      type: 'solid',
+      curveness: 1,
+      shadowBlur: 6,
+      shadowOffsetX: 3,
+      shadowOffsetY: 3,
+      shadowColor: 'rgba(0,0,0,0.2)'
+    },
+    symbolSize: 0,
+    emphasis: {
+      disabled: true
+    }
+  };
   const markLine = {
           data: [
             {
@@ -289,7 +298,7 @@ function drawChart(projectedData,formData){
               xAxis: achievementPoint?.date,
               yAxis: achievementPoint?.startValue,
               label: {
-                formatter: `{bold|${formData?.calculationValue}%} \n Improvement Goal Score: {bold|${nFormatter(achievementPoint?.startValue,2)}}`,
+                formatter: `{bold|${formData?.calculationValue}%} Improvement Goal: {bold|${nFormatter(achievementPoint?.startValue,2)}}, \n {small|(e.g # of pages to read, minutes to exercise per day to reach goal)}`,
                 position: 'insideMiddleTop',
                 padding: [3, 400, 5, 6],
                 fontSize: 15,
@@ -300,6 +309,9 @@ function drawChart(projectedData,formData){
               },
               itemStyle: {
                 color: 'green',
+              },
+              emphasis: {
+                disabled: true
               }
             },
             [
@@ -309,10 +321,9 @@ function drawChart(projectedData,formData){
                   position: 'insideMiddleBottom',
                   //backgroundColor: '#fff',
                   padding: 5,
-                  formatter: [
-                    `${scoreRemaining < 0 ? 'Acheived': 'Remaining'} By: {bold|${scoreRemaining < 0? -1*(progressRemaining) : progressRemaining}%}`,
-                    `${scoreRemaining < 0 ? 'Acheived By #Days' : '#Days Left'}: {bold|${scoreRemaining < 0? -1*daysRemaining: daysRemaining}days}`,
-                    `${scoreRemaining < 0 ? 'Extra Score': 'Score To Go'}: {bold|${scoreRemaining < 0 ? -1*scoreRemaining: scoreRemaining}}`].join('\n'),
+                  formatter: scoreRemaining >= 0 ? [
+                    `Remaining : {bold|${scoreRemaining < 0? -1*(progressRemaining) : progressRemaining}%}`,
+                    `#Days needed: {bold|${scoreRemaining < 0? -1*daysRemaining: daysRemaining}days}`].join('\n'): 'Goal achieved',
                   rich: {
                     bold: {
                       color: progressRemaining < 0 ? '#3ba272' : '#000',
@@ -376,60 +387,60 @@ function drawChart(projectedData,formData){
       },
     ],
     color,
-    graphic: [
-      {
-        type: 'group',
-        left: '12%',
-        top: '5%',
-        draggable: true,
-        children: [
-          {
-            type: 'rect',
-            z: 100,
-            left: 'center',
-            top: 'middle',
-            shape: {
-              width: 460,
-              height: 130,
-              r: 6,
-            },
-            style: {
-              fill: progressPercentage < 0 ? '#ee6666': (scoreRemaining < 0 ? '#3ba272': '#fff') ,
-              lineWidth: 1,
-              shadowBlur: 8,
-              shadowOffsetX: 3,
-              shadowOffsetY: 3,
-              shadowColor: 'rgba(0,0,0,0.2)'
-            }
-          },
-          {
-            type: 'text',
-            z: 100,
-            left: 'center',
-            top: 'middle',
-            style: {
-              fill: (scoreRemaining < -1 ? '#fff': '#000'),
-              width: 420,
-              //overflow: 'break',
-              lineHeight: 25,
-              fontSize: 16,
-              text:
-              [
-                `You have achieved {bold|${progressPercentage < 0 ? -1*progressPercentage : progressPercentage}%} of Daily {bold|${formData?.calculationValue}%} ${progressPercentage > -1 ? 'Improvement': 'Decline'} Goal`,
-                `${scoreRemaining < 0 ? 'Acheived': 'Remaining'} By: {bold|${scoreRemaining < 0? -1*(progressRemaining) : progressRemaining}%}`,
-                    `${scoreRemaining < 0 ? 'Acheived By #Days' : '#Days Left'}: {bold|${scoreRemaining < 0? -1*daysRemaining: daysRemaining}days}`,
-                    `${scoreRemaining < 0 ? 'Extra Score': 'Score To Go'}: {bold|${scoreRemaining < 0 ? -1*scoreRemaining: scoreRemaining}}`].join('\n'),
-              rich: {
-                bold: {
-                    fontWeight: 'bold',
-                    fontSize: 16,
-                },
-               },
-            },
-          }
-        ]
-      },
-    ],
+    // graphic: [
+    //   {
+    //     type: 'group',
+    //     left: '12%',
+    //     top: '5%',
+    //     draggable: true,
+    //     children: [
+    //       {
+    //         type: 'rect',
+    //         z: 100,
+    //         left: 'center',
+    //         top: 'middle',
+    //         shape: {
+    //           width: 460,
+    //           height: 130,
+    //           r: 6,
+    //         },
+    //         style: {
+    //           fill: progressPercentage < 0 ? '#ee6666': (scoreRemaining < 0 ? '#3ba272': '#fff') ,
+    //           lineWidth: 1,
+    //           shadowBlur: 8,
+    //           shadowOffsetX: 3,
+    //           shadowOffsetY: 3,
+    //           shadowColor: 'rgba(0,0,0,0.2)'
+    //         }
+    //       },
+    //       {
+    //         type: 'text',
+    //         z: 100,
+    //         left: 'center',
+    //         top: 'middle',
+    //         style: {
+    //           fill: (scoreRemaining < -1 ? '#fff': '#000'),
+    //           width: 420,
+    //           //overflow: 'break',
+    //           lineHeight: 25,
+    //           fontSize: 16,
+    //           text:
+    //           [
+    //             `You have achieved {bold|${progressPercentage < 0 ? -1*progressPercentage : progressPercentage}%} of Daily {bold|${formData?.calculationValue}%} ${progressPercentage > -1 ? 'Improvement': 'Decline'} Goal`,
+    //             `${scoreRemaining < 0 ? 'Achieved': 'Remaining'} By: {bold|${scoreRemaining < 0? -1*(progressRemaining) : progressRemaining}%}`,
+    //                 `${scoreRemaining < 0 ? 'Achieved By #Days' : '#Days Left'}: {bold|${scoreRemaining < 0? -1*daysRemaining: daysRemaining}days}`,
+    //                 `${scoreRemaining < 0 ? 'Extra Score': 'Score To Go'}: {bold|${scoreRemaining < 0 ? -1*scoreRemaining: scoreRemaining}}`].join('\n'),
+    //           rich: {
+    //             bold: {
+    //                 fontWeight: 'bold',
+    //                 fontSize: 16,
+    //             },
+    //            },
+    //         },
+    //       }
+    //     ]
+    //   },
+    // ],
     series: [
       {
         data: projectedData?.map(d => parseFloat(d.startValue)),
@@ -446,6 +457,7 @@ function drawChart(projectedData,formData){
         markPoint
       },
       {
+        name: `1% Improvement Goal`,
         data: projectedData?.filter(item => item.startValue <= achievementPoint?.startValue)?.map(d => parseFloat(d.startValue)?.toFixed(2) ),
         ...seriesSharedOption,
       },
