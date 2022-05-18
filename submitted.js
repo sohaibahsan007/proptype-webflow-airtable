@@ -59,18 +59,16 @@ function updateSubmit(event){
   if(event) event.preventDefault();
   let error = '';
   const currentValue = document.getElementById('currentValue')?.value;
-  formData.currentValue = currentValue;
-  const projectedData = prepareDataForProjection(formData);
-  drawChart(projectedData,formData);
-
   if(currentValue == "" || currentValue == undefined){
     error += "Please enter your progress update.\n";
   }
-
   if(error == ""){
     document.getElementById('submitBtn').disabled = false;
     if(event?.type == "submit"){
       document.getElementById('submitBtn').disabled = true;
+      formData.currentValue = currentValue;
+      const projectedData = prepareDataForProjection(formData);
+      drawChart(projectedData,formData);
       submitRecordToAirTable(currentValue);
     }
   }else if(error != "" && event?.type == "submit"){
@@ -186,6 +184,7 @@ const seriesSharedOption = {
     disabled: true,
     focus: "series",
   },
+
 };
 
 function drawChart(projectedData,formData){
@@ -231,7 +230,7 @@ function drawChart(projectedData,formData){
           shadowBlur: 5
         },
         label: {
-          formatter: `Current position: {bold|${nFormatter(formData?.currentValue,2)}} \n Current position (%): {bold|${progressPercentage < 0 ? -1*progressPercentage : progressPercentage}%}`,
+          formatter: `Current position: {bold|${nFormatter(formData?.currentValue,2)}} \n Progress Compared to Schedule: {bold|${progressPercentage < 0 ? -1*progressPercentage : progressPercentage}%}`,
           position: 'left',
           align: 'right',
           lineHeight: 20,
@@ -298,7 +297,7 @@ function drawChart(projectedData,formData){
               xAxis: achievementPoint?.date,
               yAxis: achievementPoint?.startValue,
               label: {
-                formatter: `{bold|${formData?.calculationValue}%} Improvement Goal: {bold|${nFormatter(achievementPoint?.startValue,2)}}, \n {small|(e.g # of pages to read, minutes to exercise per day to reach goal)}`,
+                formatter: `{bold|${formData?.calculationValue}%} Improvement Goal: {bold|${nFormatter(achievementPoint?.startValue,2)}}, \n {small|(e.g # of pages to read)}`,
                 position: 'insideMiddleTop',
                 padding: [3, 400, 5, 6],
                 fontSize: 15,
@@ -354,6 +353,39 @@ function drawChart(projectedData,formData){
       },
       axisLabel:{
          margin: 80,
+      },
+      axisPointer: {
+        value: '10/7/2022',
+        snap: true,
+        status: 'show',
+        lineStyle: {
+          color: '#3ba272',
+          width: 2
+        },
+        label: {
+          show: true,
+          formatter: function (params) {
+            return params.value;
+          },
+          backgroundColor: '#3ba272'
+        },
+        handle: {
+          show: true,
+          color: '#3ba272'
+        }
+      },
+    },
+    tooltip: {
+      triggerOn: 'none',
+      formatter: (params) => {
+        if(params[2]?.seriesName){
+          return `
+          ${params[2]?.marker} ${params[2]?.seriesName} on this date:  <b>${parseFloat(params[0]?.value?.toLocaleString())?.toFixed(2)}</b>`;
+        }
+
+      },
+      position: function (pt) {
+        return [pt[0], 130];
       }
     },
     legend: {
@@ -460,6 +492,7 @@ function drawChart(projectedData,formData){
         name: `1% Improvement Goal`,
         data: projectedData?.filter(item => item.startValue <= achievementPoint?.startValue)?.map(d => parseFloat(d.startValue)?.toFixed(2) ),
         ...seriesSharedOption,
+
       },
     ]
   };
