@@ -197,9 +197,9 @@ function drawChart(projectedData,formData){
   const currentProgress = (findCurrentProgress ?? findCurrentProgressNegative) ?? projectedData?.[0];
   const achievementPoint = projectedData?.find(item => new Date(item?.date)?.toLocaleDateString("en-US") == new Date(formData.goalDate)?.toLocaleDateString("en-US"));
   const symbolRotateBasedOnProgress = 1 - currentProgressIndex/projectedData?.length;
-  const achievementPercentage = ((findCurrentProgress?.startValue/ achievementPoint?.startValue)*100);
-  const achievementPercentageNegative = ((achievementPoint?.startValueNegative/findCurrentProgressNegative?.startValueNegative)*100);
-  progressPercentage = (parseFloat(achievementPercentage > -1 ? achievementPercentage : -1*achievementPercentageNegative) || 0)?.toFixed(2);
+  const achievementPercentage = (((findCurrentProgress?.startValue - formData?.startValue)/ (achievementPoint?.startValue - formData?.startValue))*100);
+  const achievementPercentageNegative = (((formData?.startValue - findCurrentProgressNegative?.startValueNegative)/(formData?.startValue - achievementPoint?.startValueNegative))*100);
+  progressPercentage = parseFloat((parseFloat(achievementPercentage > -1 ? achievementPercentage : -1*achievementPercentageNegative) || 0)?.toFixed(2));
   const progressRemaining = (100 - (progressPercentage < 0 ? 0 : progressPercentage)).toFixed(2);
   const daysRemaining = parseInt(achievementPoint?.id - currentProgress?.id);
   const scoreRemaining = parseFloat(achievementPoint?.startValue - currentProgress?.startValue).toFixed(2);
@@ -215,6 +215,7 @@ function drawChart(projectedData,formData){
         color: '#999',
   },
    };
+  const markPositionSwitch = (progressPercentage < 0  ? -1*progressPercentage: progressPercentage) > 50 ? true: false ;
   const markPoint ={
     data: [
       {
@@ -222,19 +223,19 @@ function drawChart(projectedData,formData){
         yAxis: currentProgress?.goalAchievedOnIndex ?? currentProgress?.goalAchievedOnIndexNegative,
         symbol: 'arrow',
         symbolSize: 20,
-        symbolOffset: [-5, 0] ,
-        symbolRotate: (progressPercentage < 0 ? -90: -110)-symbolRotateBasedOnProgress,
+        symbolOffset: markPositionSwitch ? [-5, 0] :[2, progressPercentage < 0 ? -5: 5]  ,
+        symbolRotate: (markPositionSwitch ? (progressPercentage < 0 ? -90: -110) : (progressPercentage < 0 ? 120: 50))-symbolRotateBasedOnProgress,
         itemStyle: {
           color: '#4285f4',
           shadowColor: 'rgb(13 110 253 / 50%)',
           shadowBlur: 5
         },
         label: {
-          formatter: `Current position: {bold|${nFormatter(formData?.currentValue,2)}} \n Progress Compared to Schedule: {bold|${progressPercentage < 0 ? -1*progressPercentage : progressPercentage}%}`,
-          position: 'left',
-          align: 'right',
+          formatter: `Current position: {bold|${nFormatter(formData?.currentValue,2)}} \n Progress compared to schedule: {bold|${progressPercentage < 0 ? -1*progressPercentage : progressPercentage}%}`,
+          position: markPositionSwitch ? 'left':'right',
+          align: markPositionSwitch ? 'right': 'left',
           lineHeight: 20,
-          offset: [0, 0],
+          offset: [0,0],
           rotate: 0,
           color:  `#fff`,
           backgroundColor: '#4285f4',
@@ -243,6 +244,8 @@ function drawChart(projectedData,formData){
           shadowColor: 'rgb(13 110 253 / 50%)',
           shadowBlur: 5,
           rich: rich,
+          overflow: 'breakAll',
+          appendToBody: true ,
         },
       },
       {
@@ -317,7 +320,7 @@ function drawChart(projectedData,formData){
               {
                 coord: [remainingProgress?.date, remainingProgress?.currentValue],
                 label: {
-                  position: 'insideMiddleBottom',
+                  position: markPositionSwitch ? 'insideMiddleBottom' : 'insideMiddleTop',
                   //backgroundColor: '#fff',
                   padding: 5,
                   formatter: scoreRemaining >= 0 ? [
@@ -355,7 +358,7 @@ function drawChart(projectedData,formData){
          margin: 80,
       },
       axisPointer: {
-        value: '10/7/2022',
+        value: new Date()?.toLocaleDateString("en-US"),
         snap: true,
         status: 'show',
         lineStyle: {
@@ -376,7 +379,8 @@ function drawChart(projectedData,formData){
       },
     },
     tooltip: {
-      triggerOn: 'none',
+      triggerOn: 'item',
+      alwaysShowContent: true,
       formatter: (params) => {
         if(params[2]?.seriesName){
           return `

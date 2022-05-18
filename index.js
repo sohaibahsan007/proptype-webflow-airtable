@@ -108,7 +108,7 @@ function loadTestValue(){
   document.getElementById('name').value = 'Sohaib Ahsan';
   document.getElementById('email').value = 'test01@forenax.com';
   document.getElementById('startDate').value = '2022-01-01';
-  document.getElementById('daysToTrack').value = 300;
+  document.getElementById('daysToTrack').value = 30;
   document.getElementById('startValue').value = 1;
   document.getElementById('goalDetail').value = "I'm going to track my daily book reading habbits.";
   // document.getElementById('currentValue').value = 60;
