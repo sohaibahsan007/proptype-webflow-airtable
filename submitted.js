@@ -190,7 +190,7 @@ const seriesSharedOption = {
 function drawChart(projectedData,formData){
 
   try {
-  const color = ['#fbbc04', '#ee6666',  '#3ba272','#3ba272','#3ba272','#3ba272','#3ba272','#3ba272'];
+  const color = ['#fbbc0480', '#ee666680',  '#3ba272','#3ba272','#3ba272','#3ba272','#3ba272','#3ba272'];
   const findCurrentProgress = projectedData?.find(item => item?.goalAchievedOnIndex != null);
   const currentProgressIndex = projectedData?.findIndex(item => item?.goalAchievedOnIndex != null);
   const findCurrentProgressNegative = projectedData?.find(item => item?.goalAchievedOnIndexNegative != null);
@@ -362,7 +362,7 @@ function drawChart(projectedData,formData){
         snap: true,
         status: 'show',
         lineStyle: {
-          color: '#3ba272',
+          color: '#969696',
           width: 2
         },
         label: {
@@ -370,11 +370,11 @@ function drawChart(projectedData,formData){
           formatter: function (params) {
             return params.value;
           },
-          backgroundColor: '#3ba272'
+          backgroundColor: '#969696',
         },
         handle: {
           show: true,
-          color: '#3ba272'
+          color: '#969696',
         }
       },
     },
@@ -389,17 +389,29 @@ function drawChart(projectedData,formData){
 
       },
       position: function (pt) {
-        return [pt[0], 130];
+        return [pt[0], pt[1]];
       }
     },
     legend: {
       show: true,
+      bottom: 'bottom',
+      data: [{
+        name: `Projected ${formData?.calculationValue}% BETTER EVERY DAY`,
+    },{
+      name: `Projected ${formData?.calculationValue}% DECLINE EVERY DAY`,
+  },{
+    name: `1% Improvement Goal`,
+    icon: 'circle',
+},{
+  name: 'Current Position',
+  icon: 'circle',
+}]
     },
     grid: {
       top: 30,
       left: 100,
       right: 100,
-      bottom: 100
+      bottom: 150
     },
     textStyle: {
       fontFamily: 'system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans","Liberation Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji"' ,
@@ -441,7 +453,7 @@ function drawChart(projectedData,formData){
     //           r: 6,
     //         },
     //         style: {
-    //           fill: progressPercentage < 0 ? '#ee6666': (scoreRemaining < 0 ? '#3ba272': '#fff') ,
+    //           fill: progressPercentage < 0 ? '#ee666680': (scoreRemaining < 0 ? '#3ba272': '#fff') ,
     //           lineWidth: 1,
     //           shadowBlur: 8,
     //           shadowOffsetX: 3,
@@ -496,11 +508,13 @@ function drawChart(projectedData,formData){
         name: `1% Improvement Goal`,
         data: projectedData?.filter(item => item.startValue <= achievementPoint?.startValue)?.map(d => parseFloat(d.startValue)?.toFixed(2) ),
         ...seriesSharedOption,
-
       },
     ]
   };
   option && chart.setOption(option);
+  chart.on('click',function (params) {
+    console.log(params);
+    });
   } catch (error) {
       alert('Error in chart rendering');
       console.error('Error in chart rendering',error);
