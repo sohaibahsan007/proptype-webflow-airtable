@@ -10,6 +10,7 @@ const airtableBase = new Airtable({apiKey: 'keyVpI72WUwwks62v'}).base('appsE68H4
 const chart = echarts.init(chartDom);
 let progressPercentage = null;
 let formData = {};
+let showRemainingLine = true;
 
 window.onload = function() {
 if(localStorage?.formData){
@@ -188,7 +189,6 @@ const seriesSharedOption = {
 };
 
 function drawChart(projectedData,formData){
-
   try {
   const color = ['#fbbc0480', '#ee666680',  '#3ba272','#3ba272','#3ba272','#3ba272','#3ba272','#3ba272'];
   const findCurrentProgress = projectedData?.find(item => item?.goalAchievedOnIndex != null);
@@ -293,6 +293,32 @@ function drawChart(projectedData,formData){
       disabled: true
     }
   };
+  const remaningMarkLineData =  [
+    {
+      coord: [remainingProgress?.date, remainingProgress?.currentValue],
+      label: {
+        position: markPositionSwitch ? 'insideMiddleBottom' : 'insideMiddleTop',
+        //backgroundColor: '#fff',
+        padding: 5,
+        formatter: scoreRemaining >= 0 ? [
+          `Remaining : {bold|${scoreRemaining < 0? -1*(progressRemaining) : progressRemaining}%}`,
+          `#Days needed: {bold|${scoreRemaining < 0? -1*daysRemaining: daysRemaining}days}`].join('\n'): 'Goal achieved',
+        rich: {
+          bold: {
+            color: progressRemaining < 0 ? '#3ba272' : '#000',
+            fontWeight: 'bold',
+          }
+        },
+        lineHeight:16
+      },
+      ...progressMarkLineStyle
+
+    },
+    {
+      coord: [achievementPoint?.date, achievementPoint?.startValue],
+      ...progressMarkLineStyle
+    }
+  ];
   const markLine = {
           data: [
             {
@@ -317,30 +343,8 @@ function drawChart(projectedData,formData){
               }
             },
             [
-              {
-                coord: [remainingProgress?.date, remainingProgress?.currentValue],
-                label: {
-                  position: markPositionSwitch ? 'insideMiddleBottom' : 'insideMiddleTop',
-                  //backgroundColor: '#fff',
-                  padding: 5,
-                  formatter: scoreRemaining >= 0 ? [
-                    `Remaining : {bold|${scoreRemaining < 0? -1*(progressRemaining) : progressRemaining}%}`,
-                    `#Days needed: {bold|${scoreRemaining < 0? -1*daysRemaining: daysRemaining}days}`].join('\n'): 'Goal achieved',
-                  rich: {
-                    bold: {
-                      color: progressRemaining < 0 ? '#3ba272' : '#000',
-                      fontWeight: 'bold',
-                    }
-                  },
-                  lineHeight:16
-                },
-                ...progressMarkLineStyle
-
-              },
-              {
-                coord: [achievementPoint?.date, achievementPoint?.startValue],
-                ...progressMarkLineStyle
-              }
+              showRemainingLine ? remaningMarkLineData[0]: {},
+              showRemainingLine ?remaningMarkLineData[1]: {},
             ]
           ],
     };
@@ -401,10 +405,11 @@ function drawChart(projectedData,formData){
       name: `Projected ${formData?.calculationValue}% DECLINE EVERY DAY`,
   },{
     name: `1% Improvement Goal`,
-    icon: 'circle',
 },{
   name: 'Current Position',
-  icon: 'circle',
+  itemStyle: {
+    color: '#4285f4',
+  }
 }]
     },
     grid: {
@@ -506,15 +511,22 @@ function drawChart(projectedData,formData){
       },
       {
         name: `1% Improvement Goal`,
-        data: projectedData?.filter(item => item.startValue <= achievementPoint?.startValue)?.map(d => parseFloat(d.startValue)?.toFixed(2) ),
+        data: projectedData?.filter(item => item.startValue <= achievementPoint?.startValue)?.map(d => parseFloat(d.startValue) ),
+        ...seriesSharedOption,
+      },
+      {
+        name: `Current Position`,
         ...seriesSharedOption,
       },
     ]
   };
   option && chart.setOption(option);
-  chart.on('click',function (params) {
-    console.log(params);
-    });
+  chart.on('legendselectchanged', function (params) {
+    if(params.name === 'Current Position'){
+      showRemainingLine = params?.selected['Current Position'];
+      drawChart(projectedData,formData);
+    }
+});
   } catch (error) {
       alert('Error in chart rendering');
       console.error('Error in chart rendering',error);
