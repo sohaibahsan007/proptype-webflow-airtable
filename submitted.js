@@ -18,7 +18,6 @@ if(localStorage?.formData){
   if(!formData){
     window.location = 'index.html';
   }
-  console.log(formData);
   if(formData?.existing){
     drawForLogin(formData);
   }else{
@@ -97,6 +96,7 @@ function prepareDataForProjection(formData){
   const startValue = parseFloat(formData.startValue);
   const currentValue = parseFloat(formData.currentValue);
   const calculationValue = parseFloat(formData.calculationValue);
+  document.getElementById('unitLabel').innerHTML =`(${formData?.unit})`;
 
   // prepare the projection list
   let projectedList = prepareListForProjection(datesList, startValue, currentValue,calculationValue);
@@ -206,6 +206,8 @@ function drawChart(projectedData,formData){
   const remainingProgress = JSON.parse(JSON.stringify(currentProgress));
   remainingProgress.date = currentProgress?.currentValue ? currentProgress?.date : projectedData?.[0].date;
   remainingProgress.currentValue = currentProgress?.currentValue ?? projectedData?.[0].startValue;
+  const daysSpentRaw = Math.abs(new Date() - new Date(formData?.startDate));
+  const daysSpent =  Math.ceil(daysSpentRaw / (1000 * 60 * 60 * 24));
   const rich = {
     bold: {
         fontWeight: 'bold',
@@ -231,7 +233,7 @@ function drawChart(projectedData,formData){
           shadowBlur: 5
         },
         label: {
-          formatter: `Current position: {bold|${nFormatter(formData?.currentValue,2)}} \n Progress compared to schedule: {bold|${progressPercentage < 0 ? -1*progressPercentage : progressPercentage}%}`,
+          formatter: `Current position: {bold|${nFormatter(formData?.currentValue,2)}} ${formData?.unit? `(${formData?.unit})`: ''} \n Progress compared to schedule: {bold|${progressPercentage < 0 ? -1*progressPercentage : progressPercentage}%}`,
           position: markPositionSwitch ? 'left':'right',
           align: markPositionSwitch ? 'right': 'left',
           lineHeight: 20,
@@ -266,7 +268,7 @@ function drawChart(projectedData,formData){
           color: 'red',
         },
         label: {
-          formatter: `${nFormatter(formData?.calculationValue,2)}% \n Decline Goal: ` + parseFloat(achievementPoint?.startValueNegative).toFixed(2),
+          formatter: `${nFormatter(formData?.calculationValue,2)}% \n Decline Goal: ` + parseFloat(achievementPoint?.startValueNegative).toFixed(2) + ` ${formData?.unit? `(${formData?.unit})`: ''}`,
           position: 'bottom',
           align: 'center',
           lineHeight: 14,
@@ -279,7 +281,7 @@ function drawChart(projectedData,formData){
   };
   const progressMarkLineStyle={
     lineStyle: {
-      width: 5,
+      width: 4,
       color: scoreRemaining >= 0 ? '#4285f4' : '#3ba272',
       type: 'solid',
       curveness: 1,
@@ -290,7 +292,12 @@ function drawChart(projectedData,formData){
     },
     symbolSize: 0,
     emphasis: {
-      disabled: true
+      label: {
+        formatter: scoreRemaining >= 0 ? [
+          `Remaining : {bold|${scoreRemaining < 0? -1*(progressRemaining) : progressRemaining}%}`,
+          `Day # : {bold|${daysSpent}} of {bold|${formData?.daysToTrack}}`,
+          `#Days needed to achieve goal at this progress rate: {bold|${scoreRemaining < 0? -1*daysRemaining: daysRemaining}}`].join('\n'): 'Goal achieved',
+      }
     }
   };
   const remaningMarkLineData =  [
@@ -302,7 +309,8 @@ function drawChart(projectedData,formData){
         padding: 5,
         formatter: scoreRemaining >= 0 ? [
           `Remaining : {bold|${scoreRemaining < 0? -1*(progressRemaining) : progressRemaining}%}`,
-          `#Days needed: {bold|${scoreRemaining < 0? -1*daysRemaining: daysRemaining}days}`].join('\n'): 'Goal achieved',
+          `Day # : {bold|${daysSpent}} of {bold|${formData?.daysToTrack}}`,
+          `#Days needed: {bold|${scoreRemaining < 0? -1*daysRemaining: daysRemaining}}`].join('\n'): 'Goal achieved',
         rich: {
           bold: {
             color: progressRemaining < 0 ? '#3ba272' : '#000',
@@ -326,7 +334,7 @@ function drawChart(projectedData,formData){
               xAxis: achievementPoint?.date,
               yAxis: achievementPoint?.startValue,
               label: {
-                formatter: `{bold|${formData?.calculationValue}%} Improvement Goal: {bold|${nFormatter(achievementPoint?.startValue,2)}}, \n {small|(e.g # of pages to read)}`,
+                formatter: `{bold|${formData?.calculationValue}%} Improvement Goal: {bold|${nFormatter(achievementPoint?.startValue,2)}} ${formData?.unit}, \n {small|(e.g # of pages to read)}`,
                 position: 'insideMiddleTop',
                 padding: [3, 400, 5, 6],
                 fontSize: 15,
@@ -552,7 +560,7 @@ function addHistory(formData){
     <span class="start-position"><span>Start Date :</span> ${new Date(formData?.startDate).toLocaleDateString()}</span>
   </p>
     <p class="activity-p">
-      <span class="start-position"><span>Start position :</span> ${formData?.startValue}</span>
+      <span class="start-position"><span>Start position :</span> ${formData?.startValue} ${formData?.unit}</span>
     </p>
     <p class="activity-p">
     <span class="start-position"><span>Goal Date :</span> ${new Date(formData?.goalDate).toLocaleDateString()}</span>
@@ -582,7 +590,7 @@ function addUpdateHistory(formData){
   <div dir="auto" class="activity-details">
     <p class="header-p"></p>
     <p class="activity-p">
-      <span class="start-position"><span>Current position :</span> ${formData?.currentValue || '...'}</span>
+      <span class="start-position"><span>Current position :</span> ${formData?.currentValue || '...'}  ${formData?.unit}</span>
     </p>
     <p class="activity-p">
       <span class="start-position"><span>Attachment :</span> image.jpeg</span>
@@ -609,6 +617,7 @@ function submitRecordToAirTable(currentValue){
       return;
     }
     const record = records[0]?.fields;
+    record.unit = formData?.unit;
     addUpdateHistory(record);
     formData.updated = true;
     localStorage.formData = JSON.stringify(formData);
@@ -633,11 +642,14 @@ function loadGoalRecords(user_id){
         const sorted = records?.sort((a, b) => b?.fields?.id - a?.fields?.id);
         currentValue = sorted?.[0]?.fields?.currentValue;
         formData.currentValue = currentValue;
+        formData.currentDate = sorted?.[0]?.fields?.createdOn;
         const projectedData = prepareDataForProjection(formData);
         drawChart(projectedData,formData);
       }
       records?.sort((a, b) => a?.fields?.id - b?.fields?.id).forEach(function(record) {
-          addUpdateHistory(record.fields);
+          const _record = record.fields;
+          _record.unit = formData?.unit;
+          addUpdateHistory(_record);
       });
       fetchNextPage();
   }, function done(err) {

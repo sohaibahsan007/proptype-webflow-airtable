@@ -43,6 +43,7 @@ function OnSubmit(event){
   let goalDate;
   const startValue = document.getElementById('startValue')?.value;
   const currentValue = document.getElementById('currentValue')?.value;
+  const unit = document.getElementById('unit')?.value;
   const goalDetail = document.getElementById('goalDetail')?.value;
 
   let error = "";
@@ -89,7 +90,7 @@ function OnSubmit(event){
     }
   }
   if(error == ""){
-    const formData = {name, email, startDate, goalDate, startValue, currentValue,daysToTrack,goalDetail};
+    const formData = {name, email, startDate, goalDate, startValue, currentValue,daysToTrack,goalDetail,unit};
     document.getElementById('submitRegisterBtn').disabled = false;
     if(event?.type == "submit"){
         document.getElementById('submitRegisterBtn').disabled = true;
@@ -124,6 +125,7 @@ function submitRecordToAirTable(formData){
         "startValue": parseFloat(formData?.startValue),
         "daysToTrack": parseInt(formData?.daysToTrack),
         "goalDetail": formData?.goalDetail,
+        "unit": formData?.unit,
       }
     },
   ], function(err, records) {
